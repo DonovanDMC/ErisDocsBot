@@ -1,65 +1,49 @@
-import type Eris_0_14_0 from "./eris/0.14.0";
-import type Eris_0_14_1 from "./eris/0.14.1";
-import type Eris_0_15_0 from "./eris/0.15.0";
-import type Eris_0_15_1 from "./eris/0.15.1";
-import type Eris_0_16_0 from "./eris/0.16.0";
 import config from "../../config.json";
-import { execSync } from "child_process";
+import type AST from "../@types/ast";
+import { execSync, spawn } from "child_process";
 import * as fs from "fs";
-// TYPES: https://jvilk.com/MakeTypes/
-// JSON: https://abal.moe/Eris/data/docs/eris-X.X.X.json
+
+const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
+const tmpDir = "/tmp/eris-docs";
+execSync(`mkdir -p ${tmpDir}/versions`);
 const defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
-const dir = `${__dirname}/../../${__filename.endsWith(".ts") ? "" : "../"}src/util/eris`;
-const aliases = new Map([
-	["0.14", "0.14.1"],
-	["14",   "0.14.1"],
-	["0.15", "0.15.1"],
-	["15",   "0.15.1"],
-	["0.16", "0.16.0"],
-	["16",   "0.16.0"]
-]);
-const versions = {
-	"0.14.0": JSON.parse(fs.readFileSync(`${dir}/0.14.0.json`).toString()) as Eris_0_14_0.Root,
-	"0.14.1": JSON.parse(fs.readFileSync(`${dir}/0.14.1.json`).toString()) as Eris_0_14_1.Root,
-	"0.15.0": JSON.parse(fs.readFileSync(`${dir}/0.15.0.json`).toString()) as Eris_0_15_0.Root,
-	"0.15.1": JSON.parse(fs.readFileSync(`${dir}/0.15.1.json`).toString()) as Eris_0_15_1.Root,
-	"0.16.0": JSON.parse(fs.readFileSync(`${dir}/0.16.0.json`).toString()) as Eris_0_16_0.Root
-};
+// 0.14.0, first zero gets omitted
+const minVersion = 140;
+const versions = JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>;
 
 export async function loadJSON(version?: string) {
 	if (!version) version = defaultVersion;
-	if (!versions[version as "0.16.0"]) {
-		const v = aliases.get(version);
-		if (v) version = v;
-		else return [null, version] as [json: null, version: string];
+	if (!versions.includes(version)) {
+		let v = version;
+		if (!v.startsWith("0.")) v = `0.${v}`;
+		if (versions.includes(v)) version = v;
+		else {
+			for (let i = 4; i >= 1; i--) {
+				if (versions.includes(`${v}.${i}`)) {
+					v = `${v}.${i}`;
+					break;
+				}
+			}
+		}
+		if (!versions.includes(v)) return ["invalid", version] as const;
+		version = v;
+	}
+	if (!versionOK(version)) return ["low", version] as const;
+
+	if (!fs.existsSync(`${tmpDir}/versions/${version}.json`)) {
+		if (!fs.existsSync(`${tmpDir}/versions/${version}.lock`)) {
+			spawn(`${scriptDir}/ast-run.sh`, [version], { stdio: "inherit" });
+		}
+		return ["loading", version] as const;
 	}
 
-	return [versions[version as keyof typeof versions], version] as
-	[json: Eris_0_14_0.Root, version: "0.14.0"] |
-	[json: Eris_0_14_1.Root, version: "0.14.1"] |
-	[json: Eris_0_15_0.Root, version: "0.15.0"] |
-	[json: Eris_0_15_1.Root, version: "0.15.1"] |
-	[json: Eris_0_16_0.Root, version: "0.16.0"];
+	return [JSON.parse(fs.readFileSync(`${tmpDir}/versions/${version}.json`).toString()) as AST.Root, version] as const;
+}
+function versionOK(v: string) {
+	if (v.startsWith("0.")) v = v.slice(2);
+	return Number(v.replace(/\./g, "")) >= minVersion;
 }
 
-const ver = Object.keys(versions);
-// mappings are required for component buttons (too long by default)
-const mappings = new Map<string, number>();
-const reverseMappings = new Map<number, string>();
-Array.from(new Set([
-	...ver,
-	...Object.values(versions).reduce((a, b) => a.concat(
-		...Object.values(b).reduce<Array<string>>((c: Array<string>, d: { name: string; } & Record<"events" | "props" | "methods", Array<{ name: string; }>>) => c.concat(d.name, ...(d.events || []).map(e => e.name), ...(d.props || []).map(p => p.name), ...(d.methods || []).map(m => m.name)), [] as Array<string>)
-	), [] as Array<string>)
-// eslint-disable-next-line no-sequences
-])).forEach((val, i) => {
-	if (!val || val.includes(".") && !ver.includes(val)) return;
-	// mapings start at 1 because 0 is null
-	mappings.set(val, i + 1);
-	reverseMappings.set(i + 1, val);
-});
-export function getMapping(name: string) { return mappings.get(name)!; }
-export function reverseMapping(map: number) { return reverseMappings.get(map)!; }
 // technically partially decoded
 export type EncodedCustomID  = [
 	section: string,
@@ -128,4 +112,19 @@ export function decodeCustomID(input: string) {
 export function getDocsURL(version: string, className: string, otherType?: "event" | "property" | "method", otherName?: string) {
 	return `https://abal.moe/Eris/docs/${version}/${className}${otherType && otherName ? `#${otherType}-${otherName}` : ""}`;
 	// return `${config.baseURL}/r/${getMapping(version)}/${getMapping(className)}${otherType && otherName ? `/${otherType.slice(0, 1)}/${getMapping(otherName)}` : ""}`;
+}
+
+export function getMapping(name: string) {
+	if (!fs.existsSync(`${tmpDir}/mappings.json`)) fs.writeFileSync(`${tmpDir}/mappings.json`, "{}");
+	const current = JSON.parse(fs.readFileSync(`${tmpDir}/mappings.json`).toString()) as Record<string, number>;
+	if (!current[name]) {
+		const id = Object.entries(current).length + 1;
+		current[name] = id;
+		fs.writeFileSync(`${tmpDir}/mappings.json`, JSON.stringify(current));
+		return id;
+	} else return current[name];
+}
+export function reverseMapping(id: number) {
+	const current = JSON.parse(fs.readFileSync(`${tmpDir}/mappings.json`).toString()) as Record<string, number>;
+	return Object.entries(current).find(([, b]) => b === id)![0];
 }
