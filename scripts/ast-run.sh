@@ -43,4 +43,4 @@ mkdir -p /tmp/eris-docs/versions
 node $SCRIPT_DIR/parse-ast.js $DIR/$VERSION /tmp/eris-docs/versions/$VERSION.json
 npm remove eris > /dev/null
 
-rm -rf $DIR
+rm -rf $DIR /tmp/eris-docs/versions/$VERSION.lock
