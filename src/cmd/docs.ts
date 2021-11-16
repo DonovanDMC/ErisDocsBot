@@ -1,11 +1,29 @@
-import type { APIApplicationCommandOptionChoice, ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand } from "../../node_modules/discord-api-types/v9";
+import type {
+	APIApplicationCommandOptionChoice,
+	APIChatInputApplicationCommandInteraction,
+	APIInteractionResponseChannelMessageWithSource,
+	APIInteractionResponseDeferredChannelMessageWithSource,
+	APIInteractionResponseDeferredMessageUpdate,
+	APIInteractionResponseUpdateMessage,
+	APIMessageComponentInteraction,
+	ApplicationCommandInteractionDataOptionString,
+	ApplicationCommandInteractionDataOptionSubCommand
+} from "../../node_modules/discord-api-types/v9";
+import { InteractionType } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
+import type { DecodedCustomID } from "../util/getEris";
 import loadJSON, { encodeCustomID } from "../util/getEris";
 import EmbedBuilder from "../util/EmbedBuilder";
 import ComponentHelper from "../util/ComponentHelper";
-import { MessageFlags, ButtonStyle, InteractionResponseType } from "discord-api-types/v9";
-import FuzzySearch from "fuzzy-search";
+import type Eris_0_14_0 from "../util/eris/0.14.0";
+import type Eris_0_14_1 from "../util/eris/0.14.1";
+import type Eris_0_15_0 from "../util/eris/0.15.0";
+import type Eris_0_15_1 from "../util/eris/0.15.1";
+import type Eris0_16_0 from "../util/eris/0.16.0";
+import type { Request, Response } from "express";
 import { Strings } from "@uwu-codes/utils";
+import FuzzySearch from "fuzzy-search";
+import { MessageFlags, ButtonStyle, InteractionResponseType } from "discord-api-types/v9";
 
 function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
 	if (values.length < max) return values;
@@ -61,74 +79,13 @@ export default new Command("docs", "Get information about Eris' classes and func
 				flags: MessageFlags.Ephemeral
 			}
 		});
-
-		console.log(sub, className, otherName);
-		const c = json[className];
 		switch (sub) {
 			case "class" : {
-				// @ts-expect-error removing constants makes lower types much easier
-				if (className === "Constants") {
-					return;
-				}
-				const com = new ComponentHelper();
-				const e = new EmbedBuilder()
-					.setTitle(`${className} @ ${ver}`)
-					.setURL(`${docsURL}/${ver}/${className}`)
-					.setDescription(c.description)
-					.setColor(0x5097D8);
-				let components = false, pages = 0;
-				if (c.events && c.events.length) {
-					const events = c.events.map(ev => `[${ev.name}](${docsURL}/${ver}/${className}#event-${ev.name})`);
-					e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, events.length > 5 ? `${events.slice(0, 5).join("\n")}` : events.slice(0, 5).join("\n"), true);
-					if (events.length > 5) {
-						components = true;
-						pages = Math.ceil(events.length / 5);
-					}
-				}
-				if (c.props && c.props.length) {
-					const props = c.props.map(p => `[${p.name}${p.type?.type === "NULLABLE" ? "?" : ""}](${docsURL}/${ver}/${className}#property-${p.name})`);
-					e.addField(`${props.length === 1 ? "Property" : "Properties"} (${props.length})`, props.length > 5 ? `${props.slice(0, 5).join("\n")}` : props.slice(0, 5).join("\n"), true);
-					if (props.length > 5) {
-						components = true;
-						const v = Math.ceil(props.length / 5);
-						if (v > pages) pages = v;
-					}
-				}
-				if (c.methods && c.methods.length) {
-					const methods = c.methods.map(m => `[${m.name}](${docsURL}/${ver}/${className}#method-${m.name})`);
-					e.addField(`${Strings.plural("Method", methods.length)} (${methods.length})`, methods.length > 5 ? `${methods.slice(0, 5).join("\n")}` : methods.slice(0, 5).join("\n"), true);
-					if (methods.length > 5) {
-						components = true;
-						const v = Math.ceil(methods.length / 5);
-						if (v > pages) pages = v;
-					}
-				}
-				if (components) {
-
-					com
-						.addInteractionButton(ButtonStyle.Primary, encodeCustomID("prev", className, null, ver, 1, pages, (interaction.user || interaction.member?.user)!.id), true, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-						.addInteractionButton(ButtonStyle.Primary, encodeCustomID("next", className, null, ver, 1, pages, (interaction.user || interaction.member?.user)!.id), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
-					e.setFooter(`Page 1/${pages}`);
-				}
-				return res.status(200).json({
-					type: InteractionResponseType.ChannelMessageWithSource,
-					data: {
-						embeds: [
-							e.toJSON()
-						],
-						components: com.toJSON()
-					}
-				});
+				// @ts-expect-error types not mixing well
+				return classRunner.call(this, interaction, req, res, className, otherName);
 				break;
 			}
 		}
-		/* return res.status(200).json({
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `${sub}, ${className}, ${otherName || ""}`,
-				flags: MessageFlags.Ephemeral
-			}
-		}); */
 	})
 	.setAutocompleteExecutor(async function(interaction, req, res) {
 		if (!interaction.data) return res.status(400).end();
@@ -322,4 +279,106 @@ export default new Command("docs", "Get information about Eris' classes and func
 				}
 			});
 		}
+	})
+	.setComponentExecutor(async function(interaction, data, req, res) {
+		if (data.action === "prev") data.currentPage--;
+		else if (data.action === "next") data.currentPage++;
+		switch (data.section) {
+			// @ts-expect-error types not mixing well
+			case "class": return classRunner.call(this, interaction, req, res, data.className, data.otherName, data.currentPage, data);
+		}
 	});
+
+async function classRunner(
+	this: Command,
+	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
+	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
+	res: Response<(APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource) | (APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate)>,
+	className: Exclude<keyof (Eris_0_14_0.Root | Eris_0_14_1.Root | Eris_0_15_0.Root | Eris_0_15_1.Root | Eris0_16_0.Root), "Constants">,
+	otherName?: string,
+	page = 1,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	decoded?: DecodedCustomID
+) {
+	console.log(page);
+	const [json, ver] = await loadJSON();
+	if (json === null) return res.status(200).json({
+		type: InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			content: `Invalid Version "${ver}"`,
+			flags: MessageFlags.Ephemeral
+		}
+	});
+
+	const c = json[className];
+	// @ts-expect-error removing constants makes lower types much easier
+	if (className === "Constants") {
+		return;
+	}
+	const com = new ComponentHelper();
+	const e = new EmbedBuilder()
+		.setTitle(`${className} @ ${ver}`)
+		.setURL(`${docsURL}/${ver}/${className}`)
+		.setDescription(c.description)
+		.setColor(0x5097D8);
+	let components = false, pages = 0;
+	if (c.events && c.events.length) {
+		// @ts-expect-error I hate typescript
+		// eslint-disable-next-line
+		const events = (c.events.filter(ev => !ev.name.includes(".")) as typeof c["events"]).map(ev => `[${ev.name}](${docsURL}/${ver}/${className}#event-${ev.name})`);
+		e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, events.length > 5 ? `${events.slice((page - 1) * 5, page * 5).join("\n")}` : events.slice((page - 1) * 5, page * 5).join("\n"), true);
+		if (events.length > 5) {
+			components = true;
+			pages = Math.ceil(events.length / 5);
+		}
+	}
+	if (c.props && c.props.length) {
+		// @ts-expect-error I hate typescript
+		// eslint-disable-next-line
+		const props = (c.props.filter(p => !p.name.includes(".")) as typeof c["props"]).map(p => `[${p.name}${p.type?.type === "NULLABLE" ? "?" : ""}](${docsURL}/${ver}/${className}#property-${p.name})`);
+		e.addField(`${props.length === 1 ? "Property" : "Properties"} (${props.length})`, props.length > 5 ? `${props.slice((page - 1) * 5, page * 5).join("\n")}` : props.slice((page - 1) * 5, page * 5).join("\n"), true);
+		if (props.length > 5) {
+			components = true;
+			const v = Math.ceil(props.length / 5);
+			if (v > pages) pages = v;
+		}
+	}
+	if (c.methods && c.methods.length) {
+		// @ts-expect-error I hate typescript
+		// eslint-disable-next-line
+		const methods = (c.methods.filter(m => !m.name.includes(".")) as typeof c["methods"]).map(m => `[${m.name}](${docsURL}/${ver}/${className}#method-${m.name})`);
+		e.addField(`${Strings.plural("Method", methods.length)} (${methods.length})`, methods.length > 5 ? `${methods.slice((page - 1) * 5, page * 5).join("\n")}` : methods.slice((page - 1) * 5, page * 5).join("\n"), true);
+		if (methods.length > 5) {
+			components = true;
+			const v = Math.ceil(methods.length / 5);
+			if (v > pages) pages = v;
+		}
+	}
+	if (components) {
+		com
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === 1, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === pages, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+		e.setFooter(`Page ${page}/${pages}`);
+	}
+	console.log(e.toJSON());
+	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
+		type: InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			embeds: [
+				e.toJSON()
+			],
+			components: com.toJSON()
+		}
+	});
+	else {
+		return res.status(200).json({
+			type: InteractionResponseType.UpdateMessage,
+			data: {
+				embeds: [
+					e.toJSON()
+				],
+				components: com.toJSON()
+			}
+		});
+	}
+}

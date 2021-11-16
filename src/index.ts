@@ -68,6 +68,15 @@ const server = express()
 				console.log(req.body.data.custom_id, req.body.data.custom_id.length);
 				const d = decodeCustomID(req.body.data.custom_id);
 				console.log(d);
+				const cmd = commandMap.get(d.cmd);
+				if (!cmd || !("runComponent" in cmd)) return res.status(200).json({
+					type: InteractionResponseType.ChannelMessageWithSource,
+					data: {
+						content: "Unknown Command.",
+						flags: MessageFlags.Ephemeral
+					}
+				});
+				void cmd.runComponent!.call(cmd, req.body, d, req as Parameters<Exclude<Command["runComponent"], undefined>>[2], res);
 				break;
 			}
 

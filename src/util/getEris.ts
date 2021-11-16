@@ -53,21 +53,25 @@ Array.from(new Set([
 // eslint-disable-next-line no-sequences
 ])).forEach((val, i) => {
 	if (!val || val.includes(".") && !ver.includes(val)) return;
-	mappings.set(val, i);
-	reverseMappings.set(i, val);
-	console.log(val, i);
+	// mapings start at 1 because 0 is null
+	mappings.set(val, i + 1);
+	reverseMappings.set(i + 1, val);
 });
 export function getMapping(name: string) { return mappings.get(name)!; }
 export function reverseMapping(map: number) { return reverseMappings.get(map)!; }
-export interface EncodedCustomID {
-	a: number;
-	c: number;
-	o: number | null;
-	v: number;
-	p: [currentPage: number, totalPages: number];
-	u: string;
-}
+// technically partially decoded
+export type EncodedCustomID  = [
+	section: string,
+	action: string,
+	className: string,
+	otherName: string,
+	version: string,
+	currentPage: string,
+	userId: string,
+	cmd: string
+];
 export interface DecodedCustomID {
+	section: "class" | "event" | "property" | "method";
 	action: "prev" | "next";
 	className: string;
 	otherName: string | null;
@@ -75,32 +79,46 @@ export interface DecodedCustomID {
 	currentPage: number;
 	totalPages: number;
 	userId: string;
+	cmd: string;
 }
-export function encodeCustomID(action: "prev" | "next", className: string, other: string | null, version: string, pageCurrent: number, pages: number, userId: string) {
-	return Buffer.from(JSON.stringify({
+export function encodeCustomID(section: "class" | "event" | "property" | "method", action: "prev" | "next", className: string, other: string | null, version: string, currentPage: number, userId: string, cmd: string) {
+	return Buffer.from([
+		// section, 1 = class, 2 = event, 3 = property, 4 = method
+		section === "class" ? 1 : section === "event" ? 2 : section === "property" ? 3 : section === "method" ? 4 : 0,
 		// action, 1 = back, 2 = forward
-		a: action === "prev" ? 1 : action === "next" ? 2 : 0,
+		action === "prev" ? 1 : action === "next" ? 2 : 0,
 		// class, className mapped to number
-		c: getMapping(className),
+		getMapping(className),
 		// other, otherName mapped to number
-		o: other === null ? null : getMapping(other),
+		other === null ? 0 : getMapping(other),
 		// version, version mapped to number
-		v: getMapping(version),
-		// currentPage & totalPages
-		p: [pageCurrent, pages],
+		getMapping(version),
+		// currentPage
+		currentPage,
 		// author id
-		u: userId
-	})).toString("base64").replace(/=/g, "");
+		userId,
+		// command
+		cmd
+	].join(",")).toString("base64").replace(/=/g, "");
 }
 export function decodeCustomID(input: string) {
-	const d = JSON.parse(Buffer.from(input, "base64").toString("ascii")) as EncodedCustomID;
+	const d = Buffer.from(input, "base64").toString("ascii").toString().split(",") as EncodedCustomID;
+	const s = Number(d[0]);
+	const a = Number(d[1]);
+	const c = Number(d[2]);
+	const o = Number(d[3]);
+	const v = Number(d[4]);
+	const p = Number(d[5]);
+	const userId = d[6];
+	const cmd = d[7];
 	return {
-		action: (d.a === 1 ? "prev" : d.a === 2 ? "next" : "unknown" as never),
-		className: reverseMapping(d.c),
-		otherName: d.o === null ? null : reverseMapping(d.o),
-		version: reverseMapping(d.v),
-		currentPage: d.p[0],
-		totalPages: d.p[1],
-		userId: d.u
+		section: (s === 1 ? "class" : s === 2 ? "event" : s === 3 ? "property" : s === 4 ? "method" : "unknown" as never),
+		action: (a === 1 ? "prev" : a === 2 ? "next" : "unknown" as never),
+		className: reverseMapping(c),
+		otherName: o === 0 ? null : reverseMapping(o),
+		version: reverseMapping(v),
+		currentPage: p,
+		userId,
+		cmd
 	} as DecodedCustomID;
 }
