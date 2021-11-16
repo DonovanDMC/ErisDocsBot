@@ -1,5 +1,5 @@
 
-import type { DecodedCustomID } from "./getEris";
+import type { DecodedCustomID } from "./general";
 import { ApplicationCommandOptionType, ApplicationCommandType } from "discord-api-types/v9";
 import type {
 	APIApplicationCommandOption,

@@ -2,7 +2,7 @@
 /// <reference path="./@types/express.d.ts" />
 import type Command from "./util/Command";
 import registerCommands from "./util/registerCommands";
-import { decodeCustomID } from "./util/getEris";
+import { decodeCustomID, reverseMapping } from "./util/general";
 import config from "../config.json";
 import type { Request } from "express";
 import express from "express";
@@ -34,7 +34,12 @@ const server = express()
 			});
 		}
 	}))
-	.get("/", async(req, res) => res.end("You shouldn't be here."))
+	.get("/r/:version/:class", async(req,res) =>
+		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}`)
+	).get("/r/:version/:class/:type/:other", async(req,res) =>
+		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}#${req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : "unknown"}-${reverseMapping(Number(req.params.other))}`)
+	)
+	.get("*", async(req, res) => res.end("You shouldn't be here."))
 	.post("/", async(req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 		const isVerified = nacl.sign.detached.verify(
 			Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),

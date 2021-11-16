@@ -3,6 +3,7 @@ import type Eris_0_14_1 from "./eris/0.14.1";
 import type Eris_0_15_0 from "./eris/0.15.0";
 import type Eris_0_15_1 from "./eris/0.15.1";
 import type Eris_0_16_0 from "./eris/0.16.0";
+import config from "../../config.json";
 import { execSync } from "child_process";
 import * as fs from "fs";
 // TYPES: https://jvilk.com/MakeTypes/
@@ -25,7 +26,7 @@ const versions = {
 	"0.16.0": JSON.parse(fs.readFileSync(`${dir}/0.16.0.json`).toString()) as Eris_0_16_0.Root
 };
 
-export default async function loadJSON(version?: string) {
+export async function loadJSON(version?: string) {
 	if (!version) version = defaultVersion;
 	if (!versions[version as "0.16.0"]) {
 		const v = aliases.get(version);
@@ -121,4 +122,10 @@ export function decodeCustomID(input: string) {
 		userId,
 		cmd
 	} as DecodedCustomID;
+}
+
+// I don't want to shorten if I don't have to
+export function getDocsURL(version: string, className: string, otherType?: "event" | "property" | "method", otherName?: string) {
+	return `https://abal.moe/Eris/docs/${version}/${className}${otherType && otherName ? `#${otherType}-${otherName}` : ""}`;
+	// return `${config.baseURL}/r/${getMapping(version)}/${getMapping(className)}${otherType && otherName ? `/${otherType.slice(0, 1)}/${getMapping(otherName)}` : ""}`;
 }

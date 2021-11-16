@@ -11,8 +11,8 @@ import type {
 } from "../../node_modules/discord-api-types/v9";
 import { InteractionType } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
-import type { DecodedCustomID } from "../util/getEris";
-import loadJSON, { encodeCustomID } from "../util/getEris";
+import type { DecodedCustomID } from "../util/general";
+import { loadJSON, encodeCustomID, getDocsURL } from "../util/general";
 import EmbedBuilder from "../util/EmbedBuilder";
 import ComponentHelper from "../util/ComponentHelper";
 import type Eris_0_14_0 from "../util/eris/0.14.0";
@@ -43,7 +43,6 @@ function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: 
 // no_events
 // no_properties
 // no_methods
-const docsURL = "https://abal.moe/Eris/docs";
 export default new Command("docs", "Get information about Eris' classes and functions.")
 	// class
 	.addSubCommandOption("class", "Get info about a specific class.")
@@ -300,7 +299,6 @@ async function classRunner(
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	decoded?: DecodedCustomID
 ) {
-	console.log(page);
 	const [json, ver] = await loadJSON();
 	if (json === null) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -318,40 +316,49 @@ async function classRunner(
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
 		.setTitle(`${className} @ ${ver}`)
-		.setURL(`${docsURL}/${ver}/${className}`)
+		.setURL(getDocsURL(ver, className))
 		.setDescription(c.description)
 		.setColor(0x5097D8);
 	let components = false, pages = 0;
 	if (c.events && c.events.length) {
 		// @ts-expect-error I hate typescript
 		// eslint-disable-next-line
-		const events = (c.events.filter(ev => !ev.name.includes(".")) as typeof c["events"]).map(ev => `[${ev.name}](${docsURL}/${ver}/${className}#event-${ev.name})`);
-		e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, events.length > 5 ? `${events.slice((page - 1) * 5, page * 5).join("\n")}` : events.slice((page - 1) * 5, page * 5).join("\n"), true);
-		if (events.length > 5) {
-			components = true;
-			pages = Math.ceil(events.length / 5);
+		const events = (c.events.filter(ev => !ev.name.includes(".")) as typeof c["events"]).map(ev => `[${ev.name}](${getDocsURL(ver, className, "event", ev.name)})`);
+		const onPage = events.slice((page - 1) * 5, page * 5);
+		if (onPage.length > 0) {
+			e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, onPage.join("\n"), true);
+			if (events.length > 5) {
+				components = true;
+				pages = Math.ceil(events.length / 5);
+			}
 		}
 	}
 	if (c.props && c.props.length) {
 		// @ts-expect-error I hate typescript
 		// eslint-disable-next-line
-		const props = (c.props.filter(p => !p.name.includes(".")) as typeof c["props"]).map(p => `[${p.name}${p.type?.type === "NULLABLE" ? "?" : ""}](${docsURL}/${ver}/${className}#property-${p.name})`);
-		e.addField(`${props.length === 1 ? "Property" : "Properties"} (${props.length})`, props.length > 5 ? `${props.slice((page - 1) * 5, page * 5).join("\n")}` : props.slice((page - 1) * 5, page * 5).join("\n"), true);
-		if (props.length > 5) {
-			components = true;
-			const v = Math.ceil(props.length / 5);
-			if (v > pages) pages = v;
+		const props = (c.props.filter(p => !p.name.includes(".")) as typeof c["props"]).map(p => `[${p.name}${p.type?.type === "NULLABLE" ? "?" : ""}](${getDocsURL(ver, className, "property", p.name)})`);
+		const onPage = props.slice((page - 1) * 5, page * 5);
+		if (onPage.length > 0) {
+			e.addField(`${props.length === 1 ? "Property" : "Properties"} (${props.length})`, onPage.join("\n"), true);
+			if (props.length > 5) {
+				components = true;
+				const v = Math.ceil(props.length / 5);
+				if (v > pages) pages = v;
+			}
 		}
 	}
 	if (c.methods && c.methods.length) {
 		// @ts-expect-error I hate typescript
 		// eslint-disable-next-line
-		const methods = (c.methods.filter(m => !m.name.includes(".")) as typeof c["methods"]).map(m => `[${m.name}](${docsURL}/${ver}/${className}#method-${m.name})`);
-		e.addField(`${Strings.plural("Method", methods.length)} (${methods.length})`, methods.length > 5 ? `${methods.slice((page - 1) * 5, page * 5).join("\n")}` : methods.slice((page - 1) * 5, page * 5).join("\n"), true);
-		if (methods.length > 5) {
-			components = true;
-			const v = Math.ceil(methods.length / 5);
-			if (v > pages) pages = v;
+		const methods = (c.methods.filter(m => !m.name.includes(".")) as typeof c["methods"]).map(m => `[${m.name}](${getDocsURL(ver, className, "method", m.name)})`);
+		const onPage = methods.slice((page - 1) * 5, page * 5);
+		if (onPage.length > 0) {
+			e.addField(`${Strings.plural("Method", methods.length)} (${methods.length})`, onPage.join("\n"), true);
+			if (methods.length > 5) {
+				components = true;
+				const v = Math.ceil(methods.length / 5);
+				if (v > pages) pages = v;
+			}
 		}
 	}
 	if (components) {
