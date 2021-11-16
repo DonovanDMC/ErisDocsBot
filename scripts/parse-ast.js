@@ -106,9 +106,10 @@ for (const event of events) {
 		}))
 	});
 }
+const sorted = Object.keys(final).sort().map(k => ({ [k]: final[k] })).reduce((a,b) => ({ ...a, ...b }), {});
 
-if(stdout) process.stdout.write(JSON.stringify(final));
+if(stdout) process.stdout.write(JSON.stringify(sorted));
 else {
 	console.log(chalk.blue(`Processed ${i} events with ${f} fails and ${i - f} successes`));
-	fs.writeFileSync(outFile, JSON.stringify(final, undefined, "\t"));
+	fs.writeFileSync(outFile, JSON.stringify(sorted, undefined, "\t"));
 }
