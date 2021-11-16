@@ -6,11 +6,17 @@ import * as fs from "fs";
 const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
 const tmpDir = "/tmp/eris-docs";
 execSync(`mkdir -p ${tmpDir}/versions`);
-const defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
 // 0.14.0, first zero gets omitted
 const minVersion = 140;
-const versions = JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>;
-
+let defaultVersion: string;
+let versions: Array<string>;
+// refresh versions every 10 minutes
+function refreshVersions() {
+	defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
+	versions = JSON.parse(execSync("npm show eris versions --json").toString()).filter((v: string) => versionOK(v));
+}
+setInterval(refreshVersions.bind(null), 6e5);
+refreshVersions();
 export async function loadJSON(version?: string) {
 	if (!version) version = defaultVersion;
 	if (!versions.includes(version)) {
@@ -39,7 +45,8 @@ export async function loadJSON(version?: string) {
 
 	return [JSON.parse(fs.readFileSync(`${tmpDir}/versions/${version}.json`).toString()) as AST.Root, version] as const;
 }
-function versionOK(v: string) {
+
+export function versionOK(v: string) {
 	if (v.startsWith("0.")) v = v.slice(2);
 	return Number(v.replace(/\./g, "")) >= minVersion;
 }

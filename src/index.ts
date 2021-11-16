@@ -69,6 +69,7 @@ const server = express()
 			}
 
 			case InteractionType.MessageComponent: {
+				const d = decodeCustomID(req.body.data.custom_id);
 				const cmd = commandMap.get(d.cmd);
 				if (!cmd || !("runComponent" in cmd)) return res.status(200).json({
 					type: InteractionResponseType.ChannelMessageWithSource,

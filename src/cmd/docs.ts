@@ -31,7 +31,7 @@ function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: 
 	];
 }
 
-function handleIssue(json: Awaited<ReturnType<typeof loadJSON>>[0], ver: string, req: Request<never, never>, res: Response, autocomplete: boolean): void {
+function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"class" | "event" | "property" | "method"}`, ver: string, req: Request<never, never>, res: Response, autocomplete: boolean, className: string | null, otherName: string | null): void {
 	switch (json) {
 		case "invalid": return void res.status(200).json(autocomplete ? {
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
@@ -84,11 +84,39 @@ function handleIssue(json: Awaited<ReturnType<typeof loadJSON>>[0], ver: string,
 				flags: MessageFlags.Ephemeral
 			}
 		});
+		case "invalid_class": return void res.status(200).json({
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `The class "${className}" is invalid.`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
+		case "invalid_event": return void res.status(200).json({
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid."`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
+		case "invalid_property": return void res.status(200).json({
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `The property "${className || "unknown"}#${otherName || "unknown"}" is invalid."`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
+		case "invalid_method": return void res.status(200).json({
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid."`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
 	}
 }
 
 // values to look out for later:
-// invalid_version
+// version_invalid version_low version_loading
 // invalid_class
 // more_count
 // no_events
@@ -120,16 +148,19 @@ export default new Command("docs", "Get information about Eris' classes and func
 		const subOptions = options[0].options;
 		// constants will be handled separately
 		const className = subOptions[0].value as Exclude<keyof Exclude<typeof json, null>, "Constants">;
-		const otherName = subOptions[1]?.value;
+		const otherName = subOptions[1]?.value || null;
 		const [json, ver] = await loadJSON();
-		if (typeof json !== "object") return handleIssue(json, ver, req, res, false);
+		if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 
 		switch (sub) {
-			case "class" : {
-				// @ts-expect-error types not mixing well
-				return classRunner.call(this, interaction, req, res, className, otherName);
-				break;
-			}
+			// @ts-expect-error types not mixing well
+			case "class": return classRunner.call(this, interaction, req, res, className, otherName);
+			// @ts-expect-error types not mixing well
+			case "event": return eventRunner.call(this, interaction, req, res, className, otherName, null);
+			// @ts-expect-error types not mixing well
+			case "property": return propertyRunner.call(this, interaction, req, res, className, otherName, null);
+			// @ts-expect-error types not mixing well
+			case "method": return methodRunner.call(this, interaction, req, res, className, otherName, null);
 		}
 	})
 	.setAutocompleteExecutor(async function(interaction, req, res) {
@@ -139,7 +170,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 		const sub = options[0].name as "class" | "event" | "property" | "method";
 		const subOptions = options[0].options;
 		const [json, ver] = await loadJSON();
-		if (typeof json !== "object") return handleIssue(json, ver, req, res, true);
+		if (typeof json !== "object") return handleIssue(json, ver, req, res, true, null, null);
 
 		const classNames = Object.keys(json);
 		let searchWith = [...classNames];
@@ -308,6 +339,12 @@ export default new Command("docs", "Get information about Eris' classes and func
 		switch (data.section) {
 			// @ts-expect-error types not mixing well
 			case "class": return classRunner.call(this, interaction, req, res, data.className, data.otherName, data.currentPage, data);
+			// @ts-expect-error types not mixing well
+			case "event": return eventRunner.call(this, interaction, req, res, data.className, data.otherName, data.currentPage, data);
+			// @ts-expect-error types not mixing well
+			case "property": return propertyRunner.call(this, interaction, req, res, data.className, data.otherName, data.currentPage, data);
+			// @ts-expect-error types not mixing well
+			case "method": return methodRunner.call(this, interaction, req, res, data.className, data.otherName, data.currentPage, data);
 		}
 	});
 
@@ -317,13 +354,14 @@ async function classRunner(
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
 	res: Response<(APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource) | (APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate)>,
 	className: string,
-	otherName?: string,
+	otherName: string | null,
 	page = 1,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	decoded?: DecodedCustomID
+	decoded?: DecodedCustomID,
+	cmd?: string
 ) {
-	const [json, ver] = await loadJSON();
-	if (typeof json !== "object") return handleIssue(json, ver, req, res, false);
+	const [json, ver] = await loadJSON(decoded?.version || undefined);
+	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 
 	const c = json[className];
 	const com = new ComponentHelper();
@@ -397,52 +435,49 @@ async function classRunner(
 	}
 }
 
-/* async function eventRunner(
+async function eventRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
 	res: Response<(APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource) | (APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate)>,
 	className: string,
-	otherName?: string,
-	page = 1,
+	otherName: string | null,
+	page: number | null,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	decoded?: DecodedCustomID
+	decoded?: DecodedCustomID,
+	cmd?: string
 ) {
-	const [json, ver] = await loadJSON();
-	if (typeof json !== "object") return handleIssue(json, ver, req, res);
+	const [json, ver] = await loadJSON(decoded?.version || undefined);
+	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
+	const events = json[className].events;
+	let event = events.find(e => e.name === otherName);
+	if(page !== null) {
+		if(page < 1) page = events.length;
+		if(page > events.length) page = 1;
+		event = events[page - 1];
+		otherName = event.name;
+	}
 
 
-	// @ts-expect-error fuck off
-	// eslint-disable-next-line
-	const event = (json[className] as typeof json[Exclude<keyof typeof json, "Constants">]).events?.find(e => e.name === otherName) as Exclude<typeof json[Exclude<keyof typeof json, "Constants">]["events"]>[number];
+	if(!event) return handleIssue("invalid_event", ver, req, res, false, className, otherName);
+	const index = events.indexOf(event);
 
-	const c = json[className];
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
-		.setTitle(`${className}#${otherName} @ ${ver}`)
+		.setTitle(`${className}#event:${event.name} @ ${ver}`)
 		.setURL(getDocsURL(ver, className))
-		.setDescription(c.description)
+		.setDescription(event.description)
+		.addField("Parameters", Strings.truncate(event.params.map(p =>
+				`\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
+			).join("\n") || "NONE", 1000))
 		.setColor(0x5097D8);
-	let components = false, pages = 0;
-	if (c.events && c.events.length) {
-		// @ts-expect-error I hate typescript
-		// eslint-disable-next-line
-		const events = (c.events.filter(ev => !ev.name.includes(".")) as typeof c["events"]).map(ev => `[${ev.name}](${getDocsURL(ver, className, "event", ev.name)})`);
-		const onPage = events.slice((page - 1) * 15, page * 15);
-		if (onPage.length > 0) {
-			e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, onPage.join("\n"), true);
-			if (events.length > 15) {
-				components = true;
-				pages = Math.ceil(events.length / 5);
-			}
+
+		if(events.length > 1) {
+			com
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+			e.setFooter(`Event ${index + 1}/${events.length}`);
 		}
-	}
-	if (components) {
-		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === 1, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === pages, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
-		e.setFooter(`Page ${page}/${pages}`);
-	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -464,4 +499,131 @@ async function classRunner(
 			}
 		});
 	}
-} */
+}
+
+async function propertyRunner(
+	this: Command,
+	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
+	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
+	res: Response<(APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource) | (APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate)>,
+	className: string,
+	otherName: string | null,
+	page: number | null,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	decoded?: DecodedCustomID
+) {
+	const [json, ver] = await loadJSON();
+	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
+	const properties = json[className].properties;
+	let property = properties.find(e => e.name === otherName);
+	if(page !== null) {
+		if(page < 1) page = properties.length;
+		if(page > properties.length) page = 1;
+		property = properties[page - 1];
+		otherName = property.name;
+	}
+
+
+	if(!property) return handleIssue("invalid_property", ver, req, res, false, className, otherName);
+	const index = properties.indexOf(property);
+
+	const com = new ComponentHelper();
+	const e = new EmbedBuilder()
+		.setTitle(`${className}#${property.name} @ ${ver}`)
+		.setURL(getDocsURL(ver, className))
+		.setDescription(Strings.truncate(`\`${property.type}\`${property.nullable ? " - Nullable" : ""}${property.optional ? " - Optional" : ""}\n${property.description}`, 1000))
+		.setColor(0x5097D8);
+
+		if(properties.length > 1) {
+			com
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+			e.setFooter(`Property ${index + 1}/${properties.length}`);
+		}
+
+	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
+		type: InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			embeds: [
+				e.toJSON()
+			],
+			components: com.toJSON()
+		}
+	});
+	else {
+		return res.status(200).json({
+			type: InteractionResponseType.UpdateMessage,
+			data: {
+				embeds: [
+					e.toJSON()
+				],
+				components: com.toJSON()
+			}
+		});
+	}
+}
+
+async function methodRunner(
+	this: Command,
+	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
+	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
+	res: Response<(APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource) | (APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate)>,
+	className: string,
+	otherName: string | null,
+	page: number | null,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	decoded?: DecodedCustomID
+) {
+	const [json, ver] = await loadJSON();
+	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
+	const methods = json[className].methods;
+	let method = methods.find(e => e.name === otherName);
+	if(page !== null) {
+		if(page < 1) page = methods.length;
+		if(page > methods.length) page = 1;
+		method = methods[page - 1];
+		otherName = method.name;
+	}
+
+
+	if(!method) return handleIssue("invalid_method", ver, req, res, false, className, otherName);
+	const index = methods.indexOf(method);
+
+	const com = new ComponentHelper();
+	const e = new EmbedBuilder()
+		.setTitle(`${className}#${method.name}() @ ${ver}`)
+		.setURL(getDocsURL(ver, className))
+		.setDescription(method.description)
+		.addField("Parameters", Strings.truncate(method.params.map(p =>
+				`\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
+			).join("\n") || "NONE", 1000))
+		.setColor(0x5097D8);
+
+		if(methods.length > 1) {
+			com
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+			e.setFooter(`Method ${index + 1}/${methods.length}`);
+		}
+
+	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
+		type: InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			embeds: [
+				e.toJSON()
+			],
+			components: com.toJSON()
+		}
+	});
+	else {
+		return res.status(200).json({
+			type: InteractionResponseType.UpdateMessage,
+			data: {
+				embeds: [
+					e.toJSON()
+				],
+				components: com.toJSON()
+			}
+		});
+	}
+}
