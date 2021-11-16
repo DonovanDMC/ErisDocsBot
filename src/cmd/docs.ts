@@ -1,4 +1,5 @@
 import type {
+	APIApplicationCommandAutocompleteResponse,
 	APIApplicationCommandOptionChoice,
 	APIChatInputApplicationCommandInteraction,
 	APIInteractionResponseChannelMessageWithSource,
@@ -19,8 +20,9 @@ import type { Request, Response } from "express";
 import { Strings } from "@uwu-codes/utils";
 import FuzzySearch from "fuzzy-search";
 import { MessageFlags, ButtonStyle, InteractionResponseType } from "discord-api-types/v9";
+import { APIApplicationCommandAutocompleteInteraction } from "../../node_modules/discord-api-types/payloads/v9/_interactions/autocomplete";
 
-function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
+export function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
 	if (values.length < max) return values;
 	else return [
 		...values.slice(0, max - 1),
@@ -31,7 +33,7 @@ function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: 
 	];
 }
 
-function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"class" | "event" | "property" | "method"}`, ver: string, req: Request<never, never>, res: Response, autocomplete: boolean, className: string | null, otherName: string | null): void {
+export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"class" | "event" | "property" | "method"}`, ver: string, req: Request<never, never>, res: Response, autocomplete: boolean, className: string | null, otherName: string | null): void {
 	switch (json) {
 		case "invalid": return void res.status(200).json(autocomplete ? {
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
@@ -164,174 +166,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 		}
 	})
 	.setAutocompleteExecutor(async function(interaction, req, res) {
-		if (!interaction.data) return res.status(400).end();
-		if (!interaction.data.options) return res.status(400).end();
-		const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
-		const sub = options[0].name as "class" | "event" | "property" | "method";
-		const subOptions = options[0].options;
-		const [json, ver] = await loadJSON();
-		if (typeof json !== "object") return handleIssue(json, ver, req, res, true, null, null);
-
-		const classNames = Object.keys(json);
-		let searchWith = [...classNames];
-		switch (sub) {
-			case "event": {
-				searchWith = searchWith.filter(s => json[s].events.length > 0);
-				break;
-			}
-
-			case "property": {
-				searchWith = searchWith.filter(s => json[s].properties.length > 0);
-				break;
-			}
-
-			case "method": {
-				searchWith = searchWith.filter(s => json[s].methods.length > 0);
-				break;
-			}
-		}
-		if (subOptions[0].focused === true && subOptions[0].value === "") {
-			return res.status(200).json({
-				type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-				data: {
-					choices: truncateChoices((sub === "class" ? classNames : searchWith).map(v => ({ name: v, value: v })), 25)
-				}
-			});
-		}
-
-		// class
-		if (subOptions[0].focused === true || sub === "class") {
-
-			const fuzzy = new FuzzySearch(searchWith, undefined, {
-				sort: true
-			});
-
-			return res.status(200).json({
-				type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-				data: {
-					choices: truncateChoices(fuzzy.search(subOptions[0]!.value).map(v => ({ name: v, value: v })), 25)
-				}
-			});
-		}
-
-		// property
-		if (subOptions[1]?.focused === true) {
-			const c = json[subOptions[0].value ];
-			if (subOptions[0].value === "more_count") return res.status(200).json({
-				type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-				data: {
-					choices: [
-						{
-							name: "You know that isn't a valid option, what are you playing at here?",
-							value: "invalid_class"
-						}
-					]
-				}
-			});
-			if (c === undefined) return res.status(200).json({
-				type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-				data: {
-					choices: [
-						{
-							name: "You broke something, what funny business are you up to?",
-							value: "invalid_class"
-						}
-					]
-				}
-			});
-			let choices: Array<APIApplicationCommandOptionChoice>;
-			switch (sub) {
-				case "event": {
-					if (!c.events.length) return res.status(200).json({
-						type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-						data: {
-							choices: [
-								{
-									name: "(None)",
-									value: "no_events"
-								}
-							]
-						}
-					});
-					if (subOptions[1]) {
-						const fuzzy = new FuzzySearch(c.events, ["name"], {
-							sort: true
-						});
-						c.events = fuzzy.search(subOptions[1].value);
-					}
-					choices = truncateChoices(c.events.map(e => {
-						const p: string = e.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
-						return {
-							name: `${subOptions[0].value} -> ${e.name}(${p})`,
-							value: e.name
-						};
-					}), 25);
-					break;
-				}
-
-				case "property": {
-					if (!c.properties.length) return res.status(200).json({
-						type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-						data: {
-							choices: [
-								{
-									name: "(None)",
-									value: "no_properties"
-								}
-							]
-						}
-					});
-					if (subOptions[1]) {
-						// @ts-expect-error I hate ts
-						const fuzzy = new FuzzySearch(c.properties, "name", {
-							sort: true
-						});
-						c.properties = fuzzy.search(subOptions[1].value);
-					}
-					choices = truncateChoices(c.properties.map(p => ({
-						name: `${subOptions[0].value} -> ${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}`,
-						value: p.name
-					})), 25);
-					break;
-				}
-
-				case "method": {
-					if (!("methods" in c) || !c.methods?.length) return res.status(200).json({
-						type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-						data: {
-							choices: [
-								{
-									name: "(None)",
-									value: "no_methods"
-								}
-							]
-						}
-					});
-					if (subOptions[1]) {
-						// @ts-expect-error I hate ts
-						const fuzzy = new FuzzySearch(c.methods, "name", {
-							sort: true
-						});
-						c.methods = fuzzy.search(subOptions[1].value);
-					}
-					choices = truncateChoices(c.methods.map(m => {
-						const p: string = m.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
-						return {
-							name: `${subOptions[0].value} -> ${m.name}(${p})`,
-							value: m.name
-						};
-					}), 25);
-					break;
-				}
-			}
-
-			return res.status(200).json({
-				type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-				data: {
-					choices
-				}
-			});
-		}
+		return handleAutoComplete.call(this, interaction, req, res);
 	})
 	.setComponentExecutor(async function(interaction, data, req, res) {
 		if (data.action === "prev") data.currentPage--;
@@ -348,7 +183,177 @@ export default new Command("docs", "Get information about Eris' classes and func
 		}
 	});
 
-async function classRunner(
+export async function handleAutoComplete(this: Command, interaction: APIApplicationCommandAutocompleteInteraction, req: Request<never, never, APIApplicationCommandAutocompleteInteraction>, res: Response<APIApplicationCommandAutocompleteResponse>, version?: string) {
+	if (!interaction.data) return res.status(400).end();
+	if (!interaction.data.options) return res.status(400).end();
+	const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
+	const sub = options[0].name as "class" | "event" | "property" | "method";
+	const subOptions = options[0].options;
+	const [json, ver] = await loadJSON(version);
+	if (typeof json !== "object") return handleIssue(json, ver, req, res, true, null, null);
+
+	const classNames = Object.keys(json);
+	let searchWith = [...classNames];
+	switch (sub) {
+		case "event": {
+			searchWith = searchWith.filter(s => json[s].events.length > 0);
+			break;
+		}
+
+		case "property": {
+			searchWith = searchWith.filter(s => json[s].properties.length > 0);
+			break;
+		}
+
+		case "method": {
+			searchWith = searchWith.filter(s => json[s].methods.length > 0);
+			break;
+		}
+	}
+	if (subOptions[0].focused === true && subOptions[0].value === "") {
+		return res.status(200).json({
+			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+			data: {
+				choices: truncateChoices((sub === "class" ? classNames : searchWith).map(v => ({ name: v, value: v })), 25)
+			}
+		});
+	}
+
+	// class
+	if (subOptions[0].focused === true || sub === "class") {
+
+		const fuzzy = new FuzzySearch(searchWith, undefined, {
+			sort: true
+		});
+
+		return res.status(200).json({
+			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+			data: {
+				choices: truncateChoices(fuzzy.search(subOptions[0]!.value).map(v => ({ name: v, value: v })), 25)
+			}
+		});
+	}
+
+	// property
+	if (subOptions[1]?.focused === true) {
+		const c = json[subOptions[0].value ];
+		if (subOptions[0].value === "more_count") return res.status(200).json({
+			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+			data: {
+				choices: [
+					{
+						name: "You know that isn't a valid option, what are you playing at here?",
+						value: "invalid_class"
+					}
+				]
+			}
+		});
+		if (c === undefined) return res.status(200).json({
+			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+			data: {
+				choices: [
+					{
+						name: "You broke something, what funny business are you up to?",
+						value: "invalid_class"
+					}
+				]
+			}
+		});
+		let choices: Array<APIApplicationCommandOptionChoice>;
+		switch (sub) {
+			case "event": {
+				if (!c.events.length) return res.status(200).json({
+					type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+					data: {
+						choices: [
+							{
+								name: "(None)",
+								value: "no_events"
+							}
+						]
+					}
+				});
+				if (subOptions[1]) {
+					const fuzzy = new FuzzySearch(c.events, ["name"], {
+						sort: true
+					});
+					c.events = fuzzy.search(subOptions[1].value);
+				}
+				choices = truncateChoices(c.events.map(e => {
+					const p: string = e.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
+					return {
+						name: `${subOptions[0].value} -> ${e.name}(${p})`,
+						value: e.name
+					};
+				}), 25);
+				break;
+			}
+
+			case "property": {
+				if (!c.properties.length) return res.status(200).json({
+					type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+					data: {
+						choices: [
+							{
+								name: "(None)",
+								value: "no_properties"
+							}
+						]
+					}
+				});
+				if (subOptions[1]) {
+					// @ts-expect-error I hate ts
+					const fuzzy = new FuzzySearch(c.properties, "name", {
+						sort: true
+					});
+					c.properties = fuzzy.search(subOptions[1].value);
+				}
+				choices = truncateChoices(c.properties.map(p => ({
+					name: `${subOptions[0].value} -> ${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}`,
+					value: p.name
+				})), 25);
+				break;
+			}
+
+			case "method": {
+				if (!("methods" in c) || !c.methods?.length) return res.status(200).json({
+					type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+					data: {
+						choices: [
+							{
+								name: "(None)",
+								value: "no_methods"
+							}
+						]
+					}
+				});
+				if (subOptions[1]) {
+					// @ts-expect-error I hate ts
+					const fuzzy = new FuzzySearch(c.methods, "name", {
+						sort: true
+					});
+					c.methods = fuzzy.search(subOptions[1].value);
+				}
+				choices = truncateChoices(c.methods.map(m => {
+					const p: string = m.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
+					return {
+						name: `${subOptions[0].value} -> ${m.name}(${p})`,
+						value: m.name
+					};
+				}), 25);
+				break;
+			}
+		}
+
+		return res.status(200).json({
+			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+			data: {
+				choices
+			}
+		});
+	}	
+}
+export async function classRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
@@ -358,21 +363,33 @@ async function classRunner(
 	page = 1,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	decoded?: DecodedCustomID,
-	cmd?: string
+	cmd?: string,
+	version?: string
 ) {
-	const [json, ver] = await loadJSON(decoded?.version || undefined);
+	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
+	const keys = Object.keys(json);
+	if(decoded && (decoded.action === "prev_class" || decoded.action === "next_class")) {
+		let index = keys.findIndex(k => className === k) + 1;
+		if(decoded.action === "prev_class") index--;
+		else if(decoded.action === "next_class") index++;
+		if(index < 1) index = keys.length;
+		if(index > keys.length) index = 1;
+		className = keys[index - 1];
+		page = 1;
+	}
 
 	const c = json[className];
+	const index = keys.findIndex(k => className === k);
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
-		.setTitle(`${className} @ ${ver}`)
-		.setURL(getDocsURL(ver, className))
+		.setTitle(`${c.name} @ ${ver}`)
+		.setURL(getDocsURL(ver, c.name))
 		.setDescription(c.description)
 		.setColor(0x5097D8);
 	let components = false, pages = 0;
 	if (c.events && c.events.length) {
-		const events = c.events.map(ev => `[${ev.name}](${getDocsURL(ver, className, "event", ev.name)})`);
+		const events = c.events.map(ev => `[${ev.name}](${getDocsURL(ver, c.name, "event", ev.name)})`);
 		const onPage = events.slice((page - 1) * 5, page * 5);
 		if (onPage.length > 0) {
 			e.addField(`${Strings.plural("Event", events.length)} (${events.length})`, onPage.join("\n"), true);
@@ -383,7 +400,7 @@ async function classRunner(
 		}
 	}
 	if (c.properties && c.properties.length) {
-		const props = c.properties.map(p => `[${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}](${getDocsURL(ver, className, "property", p.name)})`);
+		const props = c.properties.map(p => `[${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}](${getDocsURL(ver, c.name, "property", p.name)})`);
 		const onPage = props.slice((page - 1) * 5, page * 5);
 		if (onPage.length > 0) {
 			e.addField(`${props.length === 1 ? "Property" : "Properties"} (${props.length})`, onPage.join("\n"), true);
@@ -395,7 +412,7 @@ async function classRunner(
 		}
 	}
 	if (c.methods && c.methods.length) {
-		const methods = c.methods.map(m => `[${m.name}](${getDocsURL(ver, className, "method", m.name)})`);
+		const methods = c.methods.map(m => `[${m.name}](${getDocsURL(ver, c.name, "method", m.name)})`);
 		const onPage = methods.slice((page - 1) * 5, page * 5);
 		if (onPage.length > 0) {
 			e.addField(`${Strings.plural("Method", methods.length)} (${methods.length})`, onPage.join("\n"), true);
@@ -406,12 +423,16 @@ async function classRunner(
 			}
 		}
 	}
+	if(c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false)
+	e.setFooter(`Class ${index + 1}/${keys.length}`);
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u25c0\ufe0f"), "Class");
 	if (components) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === 1, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", className, null, ver, page, (interaction.user || interaction.member?.user)!.id, "docs"), page === pages, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
-		e.setFooter(`Page ${page}/${pages}`);
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"), "Page")
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"), "Page");
+		e.setFooter(`Class ${index + 1}/${keys.length} | Page ${page}/${pages}`);
 	}
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u25b6\ufe0f"), "Class")
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -435,7 +456,7 @@ async function classRunner(
 	}
 }
 
-async function eventRunner(
+export async function eventRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
@@ -445,9 +466,10 @@ async function eventRunner(
 	page: number | null,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	decoded?: DecodedCustomID,
-	cmd?: string
+	cmd?: string,
+	version?: string
 ) {
-	const [json, ver] = await loadJSON(decoded?.version || undefined);
+	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	const events = json[className].events;
 	let event = events.find(e => e.name === otherName);
@@ -474,8 +496,8 @@ async function eventRunner(
 
 		if(events.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
 			e.setFooter(`Event ${index + 1}/${events.length}`);
 		}
 
@@ -501,7 +523,7 @@ async function eventRunner(
 	}
 }
 
-async function propertyRunner(
+export async function propertyRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
@@ -510,9 +532,11 @@ async function propertyRunner(
 	otherName: string | null,
 	page: number | null,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	decoded?: DecodedCustomID
+	decoded?: DecodedCustomID,
+	cmd?: string,
+	version?: string
 ) {
-	const [json, ver] = await loadJSON();
+	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	const properties = json[className].properties;
 	let property = properties.find(e => e.name === otherName);
@@ -536,8 +560,8 @@ async function propertyRunner(
 
 		if(properties.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
 			e.setFooter(`Property ${index + 1}/${properties.length}`);
 		}
 
@@ -563,7 +587,7 @@ async function propertyRunner(
 	}
 }
 
-async function methodRunner(
+export async function methodRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
 	req: Request<never, never, (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction)>,
@@ -572,9 +596,11 @@ async function methodRunner(
 	otherName: string | null,
 	page: number | null,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	decoded?: DecodedCustomID
+	decoded?: DecodedCustomID,
+	cmd?: string,
+	version?: string
 ) {
-	const [json, ver] = await loadJSON();
+	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	const methods = json[className].methods;
 	let method = methods.find(e => e.name === otherName);
@@ -601,8 +627,8 @@ async function methodRunner(
 
 		if(methods.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
 			e.setFooter(`Method ${index + 1}/${methods.length}`);
 		}
 

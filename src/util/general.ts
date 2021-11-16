@@ -8,8 +8,8 @@ const tmpDir = "/tmp/eris-docs";
 execSync(`mkdir -p ${tmpDir}/versions`);
 // 0.14.0, first zero gets omitted
 const minVersion = 140;
-let defaultVersion: string;
-let versions: Array<string>;
+export let defaultVersion: string;
+export let versions: Array<string>;
 // refresh versions every 10 minutes
 function refreshVersions() {
 	defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
@@ -64,7 +64,7 @@ export type EncodedCustomID  = [
 ];
 export interface DecodedCustomID {
 	section: "class" | "event" | "property" | "method";
-	action: "prev" | "next";
+	action: "prev" | "next" | "prev_class" | "next_class";
 	className: string;
 	otherName: string | null;
 	version: string;
@@ -73,12 +73,12 @@ export interface DecodedCustomID {
 	userId: string;
 	cmd: string;
 }
-export function encodeCustomID(section: "class" | "event" | "property" | "method", action: "prev" | "next", className: string, other: string | null, version: string, currentPage: number, userId: string, cmd: string) {
+export function encodeCustomID(section: "class" | "event" | "property" | "method", action: "prev" | "next" | "prev_class" | "next_class", className: string, other: string | null, version: string, currentPage: number, userId: string, cmd: string) {
 	return Buffer.from([
 		// section, 1 = class, 2 = event, 3 = property, 4 = method
 		section === "class" ? 1 : section === "event" ? 2 : section === "property" ? 3 : section === "method" ? 4 : 0,
-		// action, 1 = back, 2 = forward
-		action === "prev" ? 1 : action === "next" ? 2 : 0,
+		// action, 1 = back, 2 = forward, 3 = back class, 4 = forward class
+		action === "prev" ? 1 : action === "next" ? 2 : action === "prev_class" ? 3 : action === "next_class" ? 4 : 0,
 		// class, className mapped to number
 		getMapping(className),
 		// other, otherName mapped to number
@@ -105,7 +105,7 @@ export function decodeCustomID(input: string) {
 	const cmd = d[7];
 	return {
 		section: (s === 1 ? "class" : s === 2 ? "event" : s === 3 ? "property" : s === 4 ? "method" : "unknown" as never),
-		action: (a === 1 ? "prev" : a === 2 ? "next" : "unknown" as never),
+		action: (a === 1 ? "prev" : a === 2 ? "next" : a === 3 ? "prev_class" : a === 4 ? "next_class" : "unknown" as never),
 		className: reverseMapping(c),
 		otherName: o === 0 ? null : reverseMapping(o),
 		version: reverseMapping(v),
