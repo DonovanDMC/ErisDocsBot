@@ -177,7 +177,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 			// @ts-expect-error -- return expects something component related
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `This button is not for you, **${user.username}#${user.discriminator}**`,
+				content: `This button is not for you, <@!${user.id}>.`,
 				flags: MessageFlags.Ephemeral
 			}
 		});
