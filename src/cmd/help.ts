@@ -12,6 +12,8 @@ export default new Command("help", "Learn how to use me.")
 					new EmbedBuilder()
 					.setTitle("Help")
 					.setDescription([
+						"Want to use me in your server? Use [this](https://discord.com/api/oauth2/authorize?client_id=909676430143651900&scope=applications.commands) link.",
+						"",
 						"You can use me via these commands:",
 						"",
 						`Default Version (\`${defaultVersion}\`)`,
@@ -24,8 +26,9 @@ export default new Command("help", "Learn how to use me.")
 						"Class: `/vdocs class <version> <class>`",
 						"Event: `/vdocs event <version> <class> <event>`",
 						"Property: `/vdocs property <version> <class> <property>`",
-						"Method: `/vdocs method <version> <class> <method>`",
+						"Method: `/vdocs method <version> <class> <method>`"
 					])
+					.setFooter("Made By Donovan_DMC#3621", "https://i.furry.cool/DonMaidCrop.png")
 					.toJSON()
 				],
 				flags: MessageFlags.Ephemeral
