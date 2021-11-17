@@ -2,10 +2,9 @@ import config from "../../config.json";
 import type AST from "../@types/ast";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
-import { DATA_DIR } from "..";
 
 const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
-execSync(`mkdir -p ${DATA_DIR}/versions`);
+execSync(`mkdir -p ${config.dataDir}/versions`);
 // 0.14.0, first zero gets omitted
 export const minVersion = 140;
 export const minVersionString = "0.14.0";
@@ -37,14 +36,14 @@ export async function loadJSON(version?: string) {
 	}
 	if (!versionOK(version)) return ["low", version] as const;
 
-	if (!fs.existsSync(`${DATA_DIR}/versions/${version}.json`)) {
-		if (!fs.existsSync(`${DATA_DIR}/versions/${version}.lock`)) {
-			spawn(`${scriptDir}/ast-run.sh`, [version, DATA_DIR], { stdio: "inherit" });
+	if (!fs.existsSync(`${config.dataDir}/versions/${version}.json`)) {
+		if (!fs.existsSync(`${config.dataDir}/versions/${version}.lock`)) {
+			spawn(`${scriptDir}/ast-run.sh`, [version, config.dataDir], { stdio: "inherit" });
 		}
 		return ["loading", version] as const;
 	}
 
-	return [JSON.parse(fs.readFileSync(`${DATA_DIR}/versions/${version}.json`).toString()) as AST.Root, version] as const;
+	return [JSON.parse(fs.readFileSync(`${config.dataDir}/versions/${version}.json`).toString()) as AST.Root, version] as const;
 }
 
 export function versionOK(v: string) {
@@ -123,16 +122,16 @@ export function getDocsURL(version: string, className: string, otherType?: "even
 }
 
 export function getMapping(name: string) {
-	if (!fs.existsSync(`${DATA_DIR}/mappings.json`)) fs.writeFileSync(`${DATA_DIR}/mappings.json`, "{}");
-	const current = JSON.parse(fs.readFileSync(`${DATA_DIR}/mappings.json`).toString()) as Record<string, number>;
+	if (!fs.existsSync(`${config.dataDir}/mappings.json`)) fs.writeFileSync(`${config.dataDir}/mappings.json`, "{}");
+	const current = JSON.parse(fs.readFileSync(`${config.dataDir}/mappings.json`).toString()) as Record<string, number>;
 	if (!current[name]) {
 		const id = Object.entries(current).length + 1;
 		current[name] = id;
-		fs.writeFileSync(`${DATA_DIR}/mappings.json`, JSON.stringify(current));
+		fs.writeFileSync(`${config.dataDir}/mappings.json`, JSON.stringify(current));
 		return id;
 	} else return current[name];
 }
 export function reverseMapping(id: number) {
-	const current = JSON.parse(fs.readFileSync(`${DATA_DIR}/mappings.json`).toString()) as Record<string, number>;
+	const current = JSON.parse(fs.readFileSync(`${config.dataDir}/mappings.json`).toString()) as Record<string, number>;
 	return Object.entries(current).find(([, b]) => b === id)![0];
 }
