@@ -9,8 +9,8 @@ import type {
 	APIMessageComponentInteraction,
 	ApplicationCommandInteractionDataOptionString,
 	ApplicationCommandInteractionDataOptionSubCommand
-} from "../../node_modules/discord-api-types/v9";
-import { InteractionType } from "../../node_modules/discord-api-types/v9";
+} from "discord-api-types/v9";
+import { InteractionType } from "discord-api-types/v9";
 import Command from "../util/Command";
 import { DecodedCustomID, log } from "../util/general";
 import { loadJSON, encodeCustomID, getDocsURL } from "../util/general";
@@ -172,6 +172,15 @@ export default new Command("docs", "Get information about Eris' classes and func
 	})
 	.setComponentExecutor(async function(interaction, data, req, res) {
 		log(interaction, "docs", "component");
+		const user = (interaction.user || interaction.member?.user)!
+		if(user.id !== data.userId) return res.status(200).json({
+			// @ts-expect-error -- return expects something component related
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `This button is not for you, **${user.username}#${user.discriminator}**`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
 		if (data.action === "prev") data.currentPage--;
 		else if (data.action === "next") data.currentPage++;
 		switch (data.section) {

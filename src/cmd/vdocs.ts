@@ -1,4 +1,4 @@
-import { ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand, InteractionResponseType } from "../../node_modules/discord-api-types/v9";
+import { ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand, InteractionResponseType, MessageFlags } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
 import { loadJSON, log, versions } from "../util/general";
 import { classRunner, eventRunner, handleAutoComplete, handleIssue, methodRunner, propertyRunner } from "./docs";
@@ -66,6 +66,15 @@ export default new Command("vdocs", "(version specific) Get information about Er
 	})
 	.setComponentExecutor(async function(interaction, data, req, res) {
 		log(interaction, "vdocs", "component");
+		const user = (interaction.user || interaction.member?.user)!
+		if(user.id !== data.userId) return res.status(200).json({
+			// @ts-expect-error -- return expects something component related
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: `This button is not for you, **${user.username}#${user.discriminator}**`,
+				flags: MessageFlags.Ephemeral
+			}
+		});
 		if (data.action === "prev") data.currentPage--;
 		else if (data.action === "next") data.currentPage++;
 		switch (data.section) {
