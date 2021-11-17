@@ -39,7 +39,7 @@ export async function loadJSON(version?: string) {
 
 	if (!fs.existsSync(`${DATA_DIR}/versions/${version}.json`)) {
 		if (!fs.existsSync(`${DATA_DIR}/versions/${version}.lock`)) {
-			spawn(`${scriptDir}/ast-run.sh`, [version], { stdio: "inherit" });
+			spawn(`${scriptDir}/ast-run.sh`, [version, DATA_DIR], { stdio: "inherit" });
 		}
 		return ["loading", version] as const;
 	}

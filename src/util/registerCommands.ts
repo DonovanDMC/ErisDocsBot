@@ -3,12 +3,12 @@ import config from "../../config.json";
 import fetch from "node-fetch";
 import type { RESTPostOAuth2ClientCredentialsResult, RESTPutAPIApplicationGuildCommandsResult } from "discord-api-types/v9";
 import * as fs from "fs";
-import os from "os";
 import util from "util";
+import { DATA_DIR } from "..";
 
-if (!fs.existsSync(`${os.tmpdir()}/eris-docs`)) fs.mkdirSync(`${os.tmpdir()}/eris-docs`);
-const tempFile = `${os.tmpdir()}/eris-docs/command_cache.json`; // Array<APIApplicationCommand>
-const tokenFile = `${os.tmpdir()}/eris-docs/creds.json`; // { token: string; expire: number; }
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
+const tempFile = `${DATA_DIR}/command_cache.json`; // Array<APIApplicationCommand>
+const tokenFile = `${DATA_DIR}/creds.json`; // { token: string; expire: number; }
 export default async function registerCommands(commands: Array<Command>, force = false) {
 	let cache: string | undefined;
 	if (fs.existsSync(tempFile) && force === false) {
