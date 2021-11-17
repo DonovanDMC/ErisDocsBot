@@ -363,6 +363,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 		});
 	}	
 }
+
 export async function classRunner(
 	this: Command,
 	interaction: (APIChatInputApplicationCommandInteraction) | (APIMessageComponentInteraction),
@@ -388,6 +389,8 @@ export async function classRunner(
 		className = keys[index - 1];
 		page = 1;
 	}
+	if(page < 1) page = 1;
+	if(page > keys.length) page = keys.length;
 
 	let c = json[className];
 	if(!c) {	
