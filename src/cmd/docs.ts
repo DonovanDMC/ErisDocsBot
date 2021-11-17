@@ -444,7 +444,7 @@ export async function classRunner(
 			}
 		}
 	}
-	if(c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false)
+	if(c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false)
 	e.setFooter(`Class ${index + 1}/${keys.length}`);
 	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u25c0\ufe0f"), "Class");
 	if (components) {
@@ -526,7 +526,7 @@ export async function eventRunner(
 		.setURL(getDocsURL(ver, className))
 		.setDescription(event.description)
 		.addField("Parameters", Strings.truncate(event.params.map(p =>
-				`\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
+				`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
 			).join("\n") || "NONE", 1000))
 		.setColor(0x5097D8);
 
@@ -606,7 +606,7 @@ export async function propertyRunner(
 	const e = new EmbedBuilder()
 		.setTitle(`${className}#${property.name} @ ${ver}`)
 		.setURL(getDocsURL(ver, className))
-		.setDescription(Strings.truncate(`\`${property.type}\`${property.nullable ? " - Nullable" : ""}${property.optional ? " - Optional" : ""}\n${property.description}`, 1000))
+		.setDescription(Strings.truncate(`\`${Array.isArray(property.type) ? property.type.join(" | ") : property.type}\`${property.nullable ? " - Nullable" : ""}${property.optional ? " - Optional" : ""}\n${property.description}`, 1000))
 		.setColor(0x5097D8);
 
 		if(properties.length > 1) {
@@ -687,7 +687,7 @@ export async function methodRunner(
 		.setURL(getDocsURL(ver, className))
 		.setDescription(method.description)
 		.addField("Parameters", Strings.truncate(method.params.map(p =>
-				`\`${p.name}\` - ${p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
+				`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
 			).join("\n") || "NONE", 1000))
 		.setColor(0x5097D8);
 
