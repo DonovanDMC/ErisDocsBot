@@ -314,8 +314,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					}
 				});
 				if (subOptions[1]) {
-					// @ts-expect-error I hate ts
-					const fuzzy = new FuzzySearch(c.properties, "name", {
+					const fuzzy = new FuzzySearch(c.properties, ["name"], {
 						sort: true
 					});
 					c.properties = fuzzy.search(subOptions[1].value);
@@ -340,8 +339,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					}
 				});
 				if (subOptions[1]) {
-					// @ts-expect-error I hate ts
-					const fuzzy = new FuzzySearch(c.methods, "name", {
+					const fuzzy = new FuzzySearch(c.methods, ["name"], {
 						sort: true
 					});
 					c.methods = fuzzy.search(subOptions[1].value);
