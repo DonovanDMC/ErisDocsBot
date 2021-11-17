@@ -151,6 +151,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 		const subOptions = options[0].options;
 		// constants will be handled separately
 		const className = subOptions[0].value as Exclude<keyof Exclude<typeof json, null>, "Constants">;
+		console.log(subOptions)
 		const otherName = subOptions[1]?.value || null;
 		const [json, ver] = await loadJSON();
 		if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
@@ -383,6 +384,7 @@ export async function classRunner(
 	}
 
 	const c = json[className];
+	if(!c) return handleIssue("invalid_class", ver, req, res, false, className, null);
 	const index = keys.findIndex(k => className === k);
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
