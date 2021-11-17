@@ -7,7 +7,8 @@ const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/
 const tmpDir = "/tmp/eris-docs";
 execSync(`mkdir -p ${tmpDir}/versions`);
 // 0.14.0, first zero gets omitted
-const minVersion = 140;
+export const minVersion = 140;
+export const minVersionString = "0.14.0";
 export let defaultVersion: string;
 export let versions: Array<string>;
 // refresh versions every 10 minutes

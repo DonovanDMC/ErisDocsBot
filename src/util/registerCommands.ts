@@ -10,8 +10,7 @@ if (!fs.existsSync(`${os.tmpdir()}/eris-docs`)) fs.mkdirSync(`${os.tmpdir()}/eri
 const tempFile = `${os.tmpdir()}/eris-docs/command_cache.json`; // Array<APIApplicationCommand>
 const tokenFile = `${os.tmpdir()}/eris-docs/creds.json`; // { token: string; expire: number; }
 export default async function registerCommands(commands: Array<Command>, force = false) {
-	return; // @FIXME
-	/* let cache: string | undefined;
+	let cache: string | undefined;
 	if (fs.existsSync(tempFile) && force === false) {
 		try {
 			cache = fs.readFileSync(tempFile).toString();
@@ -32,7 +31,7 @@ export default async function registerCommands(commands: Array<Command>, force =
 	if (fs.existsSync(tokenFile)) {
 		try {
 			const at = JSON.parse(fs.readFileSync(tokenFile).toString()) as { token: string; expire: number; };
-			if ((Date.now() + 5000) < at.expire) {
+			if ((Date.now() + 5000) > at.expire) {
 				console.log("Cached access token is expired.");
 				fs.unlinkSync(tokenFile);
 			} else {
@@ -71,8 +70,6 @@ export default async function registerCommands(commands: Array<Command>, force =
 		console.log("Got Token \"%s\", expires: %s", token, new Date(d + (body.expires_in * 1000)).toUTCString());
 	}
 
-	console.log(JSON.stringify(commands, null, "\t"));
-
 	const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/329498711338123268/commands`, {
 		method: "PUT",
 		headers: {
@@ -88,5 +85,6 @@ export default async function registerCommands(commands: Array<Command>, force =
 		return;
 	}
 
-	console.log("Successfully Registered %s Command%s", body.length, body.length === 1 ? "" : "s"); */
+	fs.writeFileSync(tempFile, JSON.stringify(commands));
+	console.log("Successfully Registered %s Command%s", body.length, body.length === 1 ? "" : "s");
 }
