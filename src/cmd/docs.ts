@@ -501,7 +501,7 @@ export async function eventRunner(
 
 
 	if(!event) {
-		const discordIsDumb = otherName!.split("-> ")[1];
+		const discordIsDumb = otherName!.split("-> ")[1]?.split("(")[0];
 		if(discordIsDumb) {
 			otherName = discordIsDumb;
 			event = events.find(e => e.name === discordIsDumb);
@@ -662,7 +662,7 @@ export async function methodRunner(
 
 
 	if(!method) {
-		const discordIsDumb = otherName!.split("-> ")[1];
+		const discordIsDumb = otherName!.split("-> ")[1]?.split("(")[0];
 		if(discordIsDumb) {
 			otherName = discordIsDumb;
 			method = methods.find(m => m.name === discordIsDumb);
