@@ -178,7 +178,10 @@ export default new Command("docs", "Get information about Eris' classes and func
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: `This button is not for you, <@!${user.id}>.`,
-				flags: MessageFlags.Ephemeral
+				flags: MessageFlags.Ephemeral,
+				allowed_mentions: {
+					users: []
+				}
 			}
 		});
 		if (data.action === "prev") data.currentPage--;
