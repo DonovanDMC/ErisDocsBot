@@ -382,8 +382,15 @@ export async function classRunner(
 		page = 1;
 	}
 
-	const c = json[className];
-	if(!c) return handleIssue("invalid_class", ver, req, res, false, className, null);
+	let c = json[className];
+	if(!c) {	
+		const key = Object.keys(json).find(k => k.toLowerCase() === className);
+		if(key) {
+			className = key;
+			c = json[className];
+		}
+		if(!c) return handleIssue("invalid_class", ver, req, res, false, className, null);
+	}
 	const index = keys.findIndex(k => className === k);
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
@@ -475,8 +482,16 @@ export async function eventRunner(
 ) {
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
-	const events = json[className].events;
-	let event = events.find(e => e.name === otherName);
+	let events = json[className]?.events;
+	if(!events) {
+		const key = Object.keys(json).find(k => k.toLowerCase() === className);
+		if(key) {
+			className = key;
+			events = json[className]?.events;
+		}
+		if(!events) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+	}
+	let event = events.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
 	if(page !== null) {
 		if(page < 1) page = events.length;
 		if(page > events.length) page = 1;
@@ -485,7 +500,14 @@ export async function eventRunner(
 	}
 
 
-	if(!event) return handleIssue("invalid_event", ver, req, res, false, className, otherName);
+	if(!event) {
+		const discordIsDumb = otherName!.split("-> ")[1];
+		if(discordIsDumb) {
+			otherName = discordIsDumb;
+			event = events.find(e => e.name === discordIsDumb);
+		}
+		if(!event) return handleIssue("invalid_event", ver, req, res, false, className, otherName)
+	};
 	const index = events.indexOf(event);
 
 	const com = new ComponentHelper();
@@ -542,8 +564,16 @@ export async function propertyRunner(
 ) {
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
-	const properties = json[className].properties;
-	let property = properties.find(e => e.name === otherName);
+	let properties = json[className]?.properties;
+	if(!properties) {
+		const key = Object.keys(json).find(k => k.toLowerCase() === className);
+		if(key) {
+			className = key;
+			properties = json[className]?.properties;
+		}
+		if(!properties) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+	}
+	let property = properties.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
 	if(page !== null) {
 		if(page < 1) page = properties.length;
 		if(page > properties.length) page = 1;
@@ -613,8 +643,16 @@ export async function methodRunner(
 ) {
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
-	const methods = json[className].methods;
-	let method = methods.find(e => e.name === otherName);
+	let methods = json[className]?.methods;
+	if(!methods) {
+		const key = Object.keys(json).find(k => k.toLowerCase() === className);
+		if(key) {
+			className = key;
+			methods = json[className]?.methods;
+		}
+		if(!methods) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+	}
+	let method = methods.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
 	if(page !== null) {
 		if(page < 1) page = methods.length;
 		if(page > methods.length) page = 1;
@@ -623,7 +661,14 @@ export async function methodRunner(
 	}
 
 
-	if(!method) return handleIssue("invalid_method", ver, req, res, false, className, otherName);
+	if(!method) {
+		const discordIsDumb = otherName!.split("-> ")[1];
+		if(discordIsDumb) {
+			otherName = discordIsDumb;
+			method = methods.find(m => m.name === discordIsDumb);
+		}
+		return handleIssue("invalid_method", ver, req, res, false, className, otherName);
+	}
 	const index = methods.indexOf(method);
 
 	const com = new ComponentHelper();
