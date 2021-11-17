@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 SCRIPT_DIR=$(dirname $(readlink -f $0))
 
+
+DATA_DIR=$2
+if [ "$DATA_DIR" = "" ]; then
+	DATA_DIR="/tmp/eris-docs"
+fi
 VERSION=$1
 [ -z "$VERSION" ] && echo "No Version" && exit 1
-touch /tmp/eris-docs/versions/$VERSION.lock
+touch $DATA_DIR/versions/$VERSION.lock
 TEMP=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 10)
-DIR=/tmp/eris-docs/ast-$TEMP
+DIR=$DATA_DIR/ast-$TEMP
 MODULE_DIR=$DIR/node_modules/eris/lib
 echo "Temporary Folder: $DIR"
 mkdir -p $DIR
@@ -39,8 +44,8 @@ for dir in $DIRS; do
 	done
 done
 cd $DIR
-mkdir -p /tmp/eris-docs/versions
-node $SCRIPT_DIR/parse-ast.js $DIR/$VERSION /tmp/eris-docs/versions/$VERSION.json
+mkdir -p $DATA_DIR/versions
+node $SCRIPT_DIR/parse-ast.js $DIR/$VERSION $DATA_DIR/versions/$VERSION.json
 npm remove eris > /dev/null
 
-rm -rf $DIR /tmp/eris-docs/versions/$VERSION.lock
+rm -rf $DIR $DATA_DIR/versions/$VERSION.lock

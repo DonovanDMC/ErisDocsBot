@@ -1,7 +1,7 @@
 {
   "name": "erisdocsbot",
   "version": "1.0.0",
-  "description": "",
+  "description": "HTTP base Discord bot for displaying Eris documentation",
   "main": "index.js",
   "scripts": {
     "start": "npx ts-node src/index.ts"
@@ -39,5 +39,6 @@
     "discord-api-types": "next",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.1-rc"
-  }
+  },
+  "keywords": []
 }

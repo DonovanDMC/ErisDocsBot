@@ -13,6 +13,7 @@ import { MessageFlags, InteractionResponseType, InteractionType } from "discord-
 import type { ModuleImport } from "@uwu-codes/types";
 import * as fs from "fs";
 
+export const DATA_DIR = process.env.DATA_DIR || "/tmp/eris-docs";
 // const latest = execSync("npm show eris version").toString();
 // const versions = JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>;
 const commandMap = new Map<string, Command>();
