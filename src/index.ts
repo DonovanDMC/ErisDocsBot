@@ -102,3 +102,4 @@ const server = express()
 
 
 server.listen(config.port, config.host, () => console.log("Listening on http://%s:%s", config.host, config.port));
+console.log("Ready.");
