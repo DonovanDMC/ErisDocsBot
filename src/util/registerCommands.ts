@@ -69,7 +69,7 @@ export default async function registerCommands(commands: Array<Command>, force =
 		console.log("Got Token \"%s\", expires: %s", token, new Date(d + (body.expires_in * 1000)).toUTCString());
 	}
 
-	const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/329498711338123268/commands`, {
+	const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/commands`, {
 		method: "PUT",
 		headers: {
 			"Content-Type": "application/json",
