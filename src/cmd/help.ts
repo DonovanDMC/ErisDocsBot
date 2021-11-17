@@ -14,6 +14,7 @@ export default new Command("help", "Learn how to use me.")
 					.setTitle("Help")
 					.setDescription([
 						"Want to use me in your server? Use [this](https://discord.com/api/oauth2/authorize?client_id=909676430143651900&scope=applications.commands) link.",
+						"You can also find my code [here](https://github.com/DonovanDMC/ErisDocsBot).",
 						"",
 						"You can use me via these commands:",
 						"",
