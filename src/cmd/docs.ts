@@ -151,7 +151,6 @@ export default new Command("docs", "Get information about Eris' classes and func
 		const subOptions = options[0].options;
 		// constants will be handled separately
 		const className = subOptions[0].value as Exclude<keyof Exclude<typeof json, null>, "Constants">;
-		console.log(subOptions)
 		const otherName = subOptions[1]?.value || null;
 		const [json, ver] = await loadJSON();
 		if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
@@ -553,7 +552,14 @@ export async function propertyRunner(
 	}
 
 
-	if(!property) return handleIssue("invalid_property", ver, req, res, false, className, otherName);
+	if(!property) {
+		const discordIsDumb = otherName!.split("-> ")[1];
+		if(discordIsDumb) {
+			otherName = discordIsDumb;
+			property = properties.find(p => p.name === discordIsDumb);
+		}
+		if(!property) return handleIssue("invalid_property", ver, req, res, false, className, otherName);
+	}
 	const index = properties.indexOf(property);
 
 	const com = new ComponentHelper();
