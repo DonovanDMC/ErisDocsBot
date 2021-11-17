@@ -3,6 +3,7 @@ import type AST from "../@types/ast";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 import { APIInteraction } from "../../node_modules/discord-api-types/v9";
+import { Time } from "@uwu-codes/utils";
 
 const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
 execSync(`mkdir -p ${config.dataDir}/versions`);
@@ -139,5 +140,5 @@ export function reverseMapping(id: number) {
 
 export function log(interaction: APIInteraction, cmd: string, type: "command" | "autocomplete" | "component") {
 	const user = (interaction.user || interaction.member?.user)!;
-	console.log("[%s/%s]: %s#%s (%s)", cmd, type, user.username, user.discriminator, user.id);
+	console.log("[%s][%s/%s]: %s#%s (%s)", Time.dateToReadable(new Date()), cmd, type, user.username, user.discriminator, user.id);
 }
