@@ -13,9 +13,6 @@ import { MessageFlags, InteractionResponseType, InteractionType } from "discord-
 import type { ModuleImport } from "@uwu-codes/types";
 import * as fs from "fs";
 
-if(process.env.DATA_DIR) config.dataDir = process.env.DATA_DIR;
-// const latest = execSync("npm show eris version").toString();
-// const versions = JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>;
 const commandMap = new Map<string, Command>();
 const commands = fs.readdirSync(`${__dirname}/cmd`).map(v => {
 	if (!v.endsWith(__filename.split(".").slice(-1)[0])) return;
