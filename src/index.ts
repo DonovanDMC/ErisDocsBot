@@ -32,6 +32,22 @@ const server = express()
 			});
 		}
 	}))
+	/* .use(async(req, res, next) => {
+		const oldWrite = res.write, oldEnd = res.end;
+		const chunks: Buffer[] = [];
+		res.write = (c) => {
+			chunks.push(c);
+			return oldWrite.apply(res, c);
+		};
+		res.end = function(c) {
+			if(c) chunks.push(c);
+			const body = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
+			console.log(body.data.choices);
+			// @ts-ignore
+			oldEnd.apply(res, arguments);
+		}
+		return next();
+	}) */
 	.get("/r/:version/:class", async(req,res) =>
 		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}`)
 	).get("/r/:version/:class/:type/:other", async(req,res) =>

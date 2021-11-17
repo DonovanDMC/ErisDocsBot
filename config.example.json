@@ -4,5 +4,7 @@
 	"port": 8080,
 	"publicKey": "",
 	"id": "",
-	"secret": ""
+	"secret": "",
+	"useGuildCommands": false,
+	"guilds": []
 }

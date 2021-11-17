@@ -69,21 +69,44 @@ export default async function registerCommands(commands: Array<Command>, force =
 		console.log("Got Token \"%s\", expires: %s", token, new Date(d + (body.expires_in * 1000)).toUTCString());
 	}
 
-	const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/commands`, {
-		method: "PUT",
-		headers: {
-			"Content-Type": "application/json",
-			"Authorization": `Bearer ${token}`
-		},
-		body: JSON.stringify(commands)
-	});
-	const body = await update.json() as RESTPutAPIApplicationGuildCommandsResult;
-	if (update.status !== 200) {
-		console.error("Failed To PUT Commands");
-		console.error(update.status, update.statusText, util.inspect(body, { depth: null }));
-		return;
+	let createdPer = 0, createdTotal = 0;
+	if(config.useGuildCommands) {
+		for(const guild of config.guilds) {
+			const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/${guild}/commands`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": `Bearer ${token}`
+				},
+				body: JSON.stringify(commands)
+			});
+			const body = await update.json() as RESTPutAPIApplicationGuildCommandsResult;
+			if (update.status !== 200) {
+				if(body.length > createdPer) createdPer = body.length;
+				createdTotal++;
+				console.error(`[${guild}] Failed To PUT Commands`);
+				console.error(`[${guild}]`, update.status, update.statusText, util.inspect(body, { depth: null }));
+				return;
+			}
+		}
+	} else {
+		const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/commands`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${token}`
+			},
+			body: JSON.stringify(commands)
+		});
+		const body = await update.json() as RESTPutAPIApplicationGuildCommandsResult;
+		if (update.status !== 200) {
+			createdPer = createdTotal = body.length;
+			console.error("Failed To PUT Commands");
+			console.error(update.status, update.statusText, util.inspect(body, { depth: null }));
+			return;
+		}
 	}
 
 	fs.writeFileSync(tempFile, JSON.stringify(commands));
-	console.log("Successfully Registered %s Command%s", body.length, body.length === 1 ? "" : "s");
+	console.log("Successfully Registered %s Command%s (%s Total)", createdPer, createdPer === 1 ? "" : "s", createdTotal);
 }
