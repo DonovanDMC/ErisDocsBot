@@ -1,10 +1,11 @@
 import { InteractionResponseType, MessageFlags } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
 import EmbedBuilder from "../util/EmbedBuilder";
-import { defaultVersion, minVersionString } from "../util/general";
+import { defaultVersion, log, minVersionString } from "../util/general";
 
 export default new Command("help", "Learn how to use me.")
 	.setExecutor(async function(interaction, req, res) {
+		log(interaction, "help", "command");
 		return res.status(200).json({
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {

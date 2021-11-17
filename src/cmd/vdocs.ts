@@ -1,6 +1,6 @@
 import { ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand, InteractionResponseType } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
-import { loadJSON, versions } from "../util/general";
+import { loadJSON, log, versions } from "../util/general";
 import { classRunner, eventRunner, handleAutoComplete, handleIssue, methodRunner, propertyRunner } from "./docs";
 
 export default new Command("vdocs", "(version specific) Get information about Eris' classes and functions.")
@@ -28,6 +28,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 	.addAutocompleteOption("method", "The method to get information about.", true)
 	.backToParent()
 	.setExecutor(async function(interaction, req, res) {
+		log(interaction, "vdocs", "command");
 		const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [version: ApplicationCommandInteractionDataOptionString, className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
 		const sub = options[0].name as "class" | "event" | "property" | "method";
 		const subOptions = options[0].options;
@@ -50,6 +51,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 		}
 	})
 	.setAutocompleteExecutor(async function(interaction, req, res) {
+		log(interaction, "vdocs", "autocomplete");
 		const v = (interaction.data!.options![0] as ApplicationCommandInteractionDataOptionSubCommand).options.shift() as ApplicationCommandInteractionDataOptionString;
 		if(v.focused) return res.status(200).json({
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
@@ -63,6 +65,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 		return handleAutoComplete.call(this, interaction, req, res, v.value);
 	})
 	.setComponentExecutor(async function(interaction, data, req, res) {
+		log(interaction, "vdocs", "component");
 		if (data.action === "prev") data.currentPage--;
 		else if (data.action === "next") data.currentPage++;
 		switch (data.section) {

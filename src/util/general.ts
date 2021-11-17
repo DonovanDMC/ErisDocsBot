@@ -2,6 +2,7 @@ import config from "../../config.json";
 import type AST from "../@types/ast";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
+import { APIInteraction } from "../../node_modules/discord-api-types/v9";
 
 const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
 execSync(`mkdir -p ${config.dataDir}/versions`);
@@ -134,4 +135,9 @@ export function getMapping(name: string) {
 export function reverseMapping(id: number) {
 	const current = JSON.parse(fs.readFileSync(`${config.dataDir}/mappings.json`).toString()) as Record<string, number>;
 	return Object.entries(current).find(([, b]) => b === id)![0];
+}
+
+export function log(interaction: APIInteraction, cmd: string, type: "command" | "autocomplete" | "component") {
+	const user = (interaction.user || interaction.member?.user)!;
+	console.log("[%s/%s]: %s#%s (%s)", cmd, type, user.username, user.discriminator);
 }

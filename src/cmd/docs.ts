@@ -12,7 +12,7 @@ import type {
 } from "../../node_modules/discord-api-types/v9";
 import { InteractionType } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
-import type { DecodedCustomID } from "../util/general";
+import { DecodedCustomID, log } from "../util/general";
 import { loadJSON, encodeCustomID, getDocsURL } from "../util/general";
 import EmbedBuilder from "../util/EmbedBuilder";
 import ComponentHelper from "../util/ComponentHelper";
@@ -145,6 +145,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 	.addAutocompleteOption("method", "The method to get information about.", true)
 	.backToParent()
 	.setExecutor(async function(interaction, req, res) {
+		log(interaction, "docs", "command");
 		const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
 		const sub = options[0].name as "class" | "event" | "property" | "method";
 		const subOptions = options[0].options;
@@ -166,9 +167,11 @@ export default new Command("docs", "Get information about Eris' classes and func
 		}
 	})
 	.setAutocompleteExecutor(async function(interaction, req, res) {
+		log(interaction, "docs", "autocomplete");
 		return handleAutoComplete.call(this, interaction, req, res);
 	})
 	.setComponentExecutor(async function(interaction, data, req, res) {
+		log(interaction, "docs", "component");
 		if (data.action === "prev") data.currentPage--;
 		else if (data.action === "next") data.currentPage++;
 		switch (data.section) {
