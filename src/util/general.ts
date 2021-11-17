@@ -139,5 +139,5 @@ export function reverseMapping(id: number) {
 
 export function log(interaction: APIInteraction, cmd: string, type: "command" | "autocomplete" | "component") {
 	const user = (interaction.user || interaction.member?.user)!;
-	console.log("[%s/%s]: %s#%s (%s)", cmd, type, user.username, user.discriminator);
+	console.log("[%s/%s]: %s#%s (%s)", cmd, type, user.username, user.discriminator, user.id);
 }
