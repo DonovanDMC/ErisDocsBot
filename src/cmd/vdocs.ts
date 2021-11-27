@@ -60,7 +60,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 	})
 	.setAutocompleteExecutor(async function (interaction, req, res) {
 		log(interaction, "vdocs", "autocomplete");
-		const v = (interaction.data!.options![0] as ApplicationCommandInteractionDataOptionSubCommand).options.shift() as ApplicationCommandInteractionDataOptionString;
+		const v = (interaction.data!.options![0] as ApplicationCommandInteractionDataOptionSubCommand).options!.shift() as ApplicationCommandInteractionDataOptionString;
 		if (v.focused) return res.status(200).json({
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 			data: {
