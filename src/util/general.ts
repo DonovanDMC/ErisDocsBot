@@ -1,9 +1,9 @@
 import config from "../../config.json";
 import type AST from "../@types/ast";
+import type { APIInteraction } from "discord-api-types/v9";
+import { Time } from "@uwu-codes/utils";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
-import { APIInteraction } from "../../node_modules/discord-api-types/v9";
-import { Time } from "@uwu-codes/utils";
 
 const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
 execSync(`mkdir -p ${config.dataDir}/versions`);
@@ -15,7 +15,7 @@ export let versions: Array<string>;
 // refresh versions every 10 minutes
 function refreshVersions() {
 	defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
-	versions = JSON.parse(execSync("npm show eris versions --json").toString()).filter((v: string) => versionOK(v));
+	versions = (JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>).filter((v: string) => versionOK(v));
 }
 setInterval(refreshVersions.bind(null), 6e5);
 refreshVersions();
@@ -54,7 +54,7 @@ export function versionOK(v: string) {
 }
 
 // technically partially decoded
-export type EncodedCustomID  = [
+export type EncodedCustomID = [
 	section: string,
 	action: string,
 	className: string,

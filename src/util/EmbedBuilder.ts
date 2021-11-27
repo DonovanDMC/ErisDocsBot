@@ -10,7 +10,7 @@ export default class EmbedBuilder {
 			url
 		};
 
-		return  this;
+		return this;
 	}
 	getAuthor() { return this.json.author; }
 	removeAuthor() { this.json.author = undefined; return this; }

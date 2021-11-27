@@ -1,7 +1,15 @@
-import { ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand, InteractionResponseType, MessageFlags } from "../../node_modules/discord-api-types/v9";
+import {
+	classRunner,
+	eventRunner,
+	handleAutoComplete,
+	handleIssue,
+	methodRunner,
+	propertyRunner
+} from "./docs";
+import type { ApplicationCommandInteractionDataOptionString, ApplicationCommandInteractionDataOptionSubCommand } from "../../node_modules/discord-api-types/v9";
+import { InteractionResponseType, MessageFlags } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
 import { loadJSON, log, versions } from "../util/general";
-import { classRunner, eventRunner, handleAutoComplete, handleIssue, methodRunner, propertyRunner } from "./docs";
 
 export default new Command("vdocs", "(version specific) Get information about Eris' classes and functions.")
 	// class
@@ -27,7 +35,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 	.addAutocompleteOption("version", "The version to get information from.", true)
 	.addAutocompleteOption("method", "The method to get information about.", true)
 	.backToParent()
-	.setExecutor(async function(interaction, req, res) {
+	.setExecutor(async function (interaction, req, res) {
 		log(interaction, "vdocs", "command");
 		const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [version: ApplicationCommandInteractionDataOptionString, className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
 		const sub = options[0].name as "class" | "event" | "property" | "method";
@@ -50,24 +58,24 @@ export default new Command("vdocs", "(version specific) Get information about Er
 			case "method": return methodRunner.call(this, interaction, req, res, className, otherName, null, undefined, "vdocs", ver);
 		}
 	})
-	.setAutocompleteExecutor(async function(interaction, req, res) {
+	.setAutocompleteExecutor(async function (interaction, req, res) {
 		log(interaction, "vdocs", "autocomplete");
 		const v = (interaction.data!.options![0] as ApplicationCommandInteractionDataOptionSubCommand).options.shift() as ApplicationCommandInteractionDataOptionString;
-		if(v.focused) return res.status(200).json({
+		if (v.focused) return res.status(200).json({
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 			data: {
-				choices: versions.map(v => ({
-					name: v,
-					value: v
+				choices: versions.map(ver => ({
+					name: ver,
+					value: ver
 				}))
 			}
-		})
+		});
 		return handleAutoComplete.call(this, interaction, req, res, v.value);
 	})
-	.setComponentExecutor(async function(interaction, data, req, res) {
+	.setComponentExecutor(async function (interaction, data, req, res) {
 		log(interaction, "vdocs", "component");
-		const user = (interaction.user || interaction.member?.user)!
-		if(user.id !== data.userId) return res.status(200).json({
+		const user = (interaction.user || interaction.member?.user)!;
+		if (user.id !== data.userId) return res.status(200).json({
 			// @ts-expect-error -- return expects something component related
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {

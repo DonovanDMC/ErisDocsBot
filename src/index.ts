@@ -48,13 +48,13 @@ const server = express()
 		}
 		return next();
 	}) */
-	.get("/r/:version/:class", async(req,res) =>
+	.get("/r/:version/:class", async (req, res) =>
 		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}`)
-	).get("/r/:version/:class/:type/:other", async(req,res) =>
+	).get("/r/:version/:class/:type/:other", async (req, res) =>
 		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}#${req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : "unknown"}-${reverseMapping(Number(req.params.other))}`)
 	)
-	.get("*", async(req, res) => res.end("You shouldn't be here."))
-	.post("/", async(req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
+	.get("*", async (req, res) => res.end("You shouldn't be here."))
+	.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 		const isVerified = nacl.sign.detached.verify(
 			Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),
 			Buffer.from(req.get("X-Signature-Ed25519")!, "hex"),

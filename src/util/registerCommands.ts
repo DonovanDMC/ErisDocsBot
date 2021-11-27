@@ -70,8 +70,8 @@ export default async function registerCommands(commands: Array<Command>, force =
 	}
 
 	let createdPer = 0, createdTotal = 0;
-	if(config.useGuildCommands) {
-		for(const guild of config.guilds) {
+	if (config.useGuildCommands) {
+		for (const guild of config.guilds) {
 			const update = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/${guild}/commands`, {
 				method: "PUT",
 				headers: {
@@ -82,7 +82,7 @@ export default async function registerCommands(commands: Array<Command>, force =
 			});
 			const body = await update.json() as RESTPutAPIApplicationGuildCommandsResult;
 			if (update.status !== 200) {
-				if(body.length > createdPer) createdPer = body.length;
+				if (body.length > createdPer) createdPer = body.length;
 				createdTotal++;
 				console.error(`[${guild}] Failed To PUT Commands`);
 				console.error(`[${guild}]`, update.status, update.statusText, util.inspect(body, { depth: null }));

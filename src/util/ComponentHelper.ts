@@ -1,5 +1,5 @@
 import type { APIActionRowComponent, APIMessageComponent, APIMessageComponentEmoji, APISelectMenuOption } from "discord-api-types/v9";
-import { ComponentType , ButtonStyle } from "discord-api-types/v9";
+import { ComponentType, ButtonStyle } from "discord-api-types/v9";
 
 export default class ComponentHelper {
 	private rows = [] as Array<APIActionRowComponent>;
@@ -71,7 +71,7 @@ export default class ComponentHelper {
 
 	toJSON() { return this.removeEmptyRows().rows; }
 
-	static emojiToPartial(e: string, type: "default" | "custom" = "custom"): APIMessageComponentEmoji  {
+	static emojiToPartial(e: string, type: "default" | "custom" = "custom"): APIMessageComponentEmoji {
 		if (type === "default") return {
 			name: e,
 			animated: false

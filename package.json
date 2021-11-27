@@ -1,6 +1,6 @@
 {
   "name": "erisdocsbot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HTTP base Discord bot for displaying Eris documentation",
   "main": "index.js",
   "scripts": {
@@ -31,14 +31,14 @@
     "@types/fs-extra": "^9.0.13",
     "@types/fuzzy-search": "^2.1.1",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^16.11.7",
+    "@types/node": "^16.11.10",
     "@types/node-fetch": "^2.5.12",
-    "@uwu-codes/eslint-config": "^1.0.29",
+    "@uwu-codes/eslint-config": "^1.0.31",
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.5",
     "discord-api-types": "next",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.1-rc"
+    "typescript": "^4.5.2"
   },
   "keywords": []
 }

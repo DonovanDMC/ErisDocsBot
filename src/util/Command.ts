@@ -22,7 +22,7 @@ export default class Command {
 	options: Array<APIApplicationCommandOption> = [];
 	runCommand: (this: Command, interaction: APIChatInputApplicationCommandInteraction, req: Request<never, never, APIChatInputApplicationCommandInteraction>, res: Response<APIInteractionResponseChannelMessageWithSource | APIInteractionResponseDeferredChannelMessageWithSource>) => Promise<unknown>;
 	runAutoComplete?: (this: Command, interaction: APIApplicationCommandAutocompleteInteraction, req: Request<never, never, APIApplicationCommandAutocompleteInteraction>, res: Response<APIApplicationCommandAutocompleteResponse>) => Promise<unknown>;
-	runComponent?: (this: Command, interaction: APIMessageComponentInteraction, data: DecodedCustomID,req: Request<never, never, APIMessageComponentInteraction>, res: Response<APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate>) => Promise<unknown>;
+	runComponent?: (this: Command, interaction: APIMessageComponentInteraction, data: DecodedCustomID, req: Request<never, never, APIMessageComponentInteraction>, res: Response<APIInteractionResponseUpdateMessage | APIInteractionResponseDeferredMessageUpdate>) => Promise<unknown>;
 	constructor(name: string, description: string) {
 		this.name = name;
 		this.description = description;

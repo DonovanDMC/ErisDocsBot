@@ -1,3 +1,14 @@
+import Command from "../util/Command";
+import type { DecodedCustomID } from "../util/general";
+import { log, loadJSON, encodeCustomID, getDocsURL } from "../util/general";
+import EmbedBuilder from "../util/EmbedBuilder";
+import ComponentHelper from "../util/ComponentHelper";
+import emojis from "../../emojis.json";
+import type { APIApplicationCommandAutocompleteInteraction } from "discord-api-types/payloads/v9/_interactions/autocomplete";
+import type { Request, Response } from "express";
+import { Strings } from "@uwu-codes/utils";
+import FuzzySearch from "fuzzy-search";
+import { InteractionType, MessageFlags, ButtonStyle, InteractionResponseType } from "discord-api-types/v9";
 import type {
 	APIApplicationCommandAutocompleteResponse,
 	APIApplicationCommandOptionChoice,
@@ -10,18 +21,6 @@ import type {
 	ApplicationCommandInteractionDataOptionString,
 	ApplicationCommandInteractionDataOptionSubCommand
 } from "discord-api-types/v9";
-import { InteractionType } from "discord-api-types/v9";
-import Command from "../util/Command";
-import { DecodedCustomID, log } from "../util/general";
-import { loadJSON, encodeCustomID, getDocsURL } from "../util/general";
-import EmbedBuilder from "../util/EmbedBuilder";
-import ComponentHelper from "../util/ComponentHelper";
-import type { Request, Response } from "express";
-import { Strings } from "@uwu-codes/utils";
-import FuzzySearch from "fuzzy-search";
-import { MessageFlags, ButtonStyle, InteractionResponseType } from "discord-api-types/v9";
-import { APIApplicationCommandAutocompleteInteraction } from "../../node_modules/discord-api-types/payloads/v9/_interactions/autocomplete";
-import emojis from "../../emojis.json";
 
 export function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
 	if (values.length < max) return values;
@@ -90,7 +89,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 		case "invalid_class": return void res.status(200).json({
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `The class "${className}" is invalid.`,
+				content: `The class "${className!}" is invalid.`,
 				flags: MessageFlags.Ephemeral
 			}
 		});
@@ -145,7 +144,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 	.addAutocompleteOption("class", "The class to get method information from.", true)
 	.addAutocompleteOption("method", "The method to get information about.", true)
 	.backToParent()
-	.setExecutor(async function(interaction, req, res) {
+	.setExecutor(async function (interaction, req, res) {
 		log(interaction, "docs", "command");
 		const options = interaction.data.options as [Omit<ApplicationCommandInteractionDataOptionSubCommand, "options"> & { options: [className: ApplicationCommandInteractionDataOptionString, other?: ApplicationCommandInteractionDataOptionString]; }];
 		const sub = options[0].name as "class" | "event" | "property" | "method";
@@ -167,14 +166,14 @@ export default new Command("docs", "Get information about Eris' classes and func
 			case "method": return methodRunner.call(this, interaction, req, res, className, otherName, null);
 		}
 	})
-	.setAutocompleteExecutor(async function(interaction, req, res) {
+	.setAutocompleteExecutor(async function (interaction, req, res) {
 		log(interaction, "docs", "autocomplete");
 		return handleAutoComplete.call(this, interaction, req, res);
 	})
-	.setComponentExecutor(async function(interaction, data, req, res) {
+	.setComponentExecutor(async function (interaction, data, req, res) {
 		log(interaction, "docs", "component");
-		const user = (interaction.user || interaction.member?.user)!
-		if(user.id !== data.userId) return res.status(200).json({
+		const user = (interaction.user || interaction.member?.user)!;
+		if (user.id !== data.userId) return res.status(200).json({
 			// @ts-expect-error -- return expects something component related
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
@@ -252,7 +251,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 
 	// property
 	if (subOptions[1]?.focused === true) {
-		const c = json[subOptions[0].value ];
+		const c = json[subOptions[0].value];
 		if (subOptions[0].value === "more_count") return res.status(200).json({
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 			data: {
@@ -365,7 +364,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 				choices
 			}
 		});
-	}	
+	}
 }
 
 export async function classRunner(
@@ -384,26 +383,26 @@ export async function classRunner(
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	const keys = Object.keys(json);
-	if(decoded && (decoded.action === "prev_class" || decoded.action === "next_class")) {
+	if (decoded && (decoded.action === "prev_class" || decoded.action === "next_class")) {
 		let index = keys.findIndex(k => className === k) + 1;
-		if(decoded.action === "prev_class") index--;
-		else if(decoded.action === "next_class") index++;
-		if(index < 1) index = keys.length;
-		if(index > keys.length) index = 1;
+		if (decoded.action === "prev_class") index--;
+		else if (decoded.action === "next_class") index++;
+		if (index < 1) index = keys.length;
+		if (index > keys.length) index = 1;
 		className = keys[index - 1];
 		page = 1;
 	}
-	if(page < 1) page = 1;
-	if(page > keys.length) page = keys.length;
+	if (page < 1) page = 1;
+	if (page > keys.length) page = keys.length;
 
 	let c = json[className];
-	if(!c) {	
+	if (!c) {
 		const key = Object.keys(json).find(k => k.toLowerCase() === className);
-		if(key) {
+		if (key) {
 			className = key;
 			c = json[className];
 		}
-		if(!c) return handleIssue("invalid_class", ver, req, res, false, className, null);
+		if (!c) return handleIssue("invalid_class", ver, req, res, false, className, null);
 	}
 	const index = keys.findIndex(k => className === k);
 	const com = new ComponentHelper();
@@ -448,7 +447,7 @@ export async function classRunner(
 			}
 		}
 	}
-	if(c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false)
+	if (c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false);
 	e.setFooter(`Class ${index + 1}/${keys.length}`);
 	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.small_left, "custom"), "Class");
 	if (components) {
@@ -457,7 +456,7 @@ export async function classRunner(
 			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"), "Page");
 		e.setFooter(`Class ${index + 1}/${keys.length} | Page ${page}/${pages}`);
 	}
-	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.small_right, "custom"), "Class")
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.small_right, "custom"), "Class");
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -497,31 +496,31 @@ export async function eventRunner(
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	let events = json[className]?.events;
-	if(!events) {
+	if (!events) {
 		const key = Object.keys(json).find(k => k.toLowerCase() === className);
-		if(key) {
+		if (key) {
 			className = key;
 			events = json[className]?.events;
 		}
-		if(!events) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+		if (!events) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
 	}
 	let event = events.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
-	if(page !== null) {
-		if(page < 1) page = events.length;
-		if(page > events.length) page = 1;
+	if (page !== null) {
+		if (page < 1) page = events.length;
+		if (page > events.length) page = 1;
 		event = events[page - 1];
 		otherName = event.name;
 	}
 
 
-	if(!event) {
+	if (!event) {
 		const discordIsDumb = otherName!.split("-> ")[1]?.split("(")[0];
-		if(discordIsDumb) {
+		if (discordIsDumb) {
 			otherName = discordIsDumb;
 			event = events.find(e => e.name === discordIsDumb);
 		}
-		if(!event) return handleIssue("invalid_event", ver, req, res, false, className, otherName)
-	};
+		if (!event) return handleIssue("invalid_event", ver, req, res, false, className, otherName);
+	}
 	const index = events.indexOf(event);
 
 	const com = new ComponentHelper();
@@ -530,16 +529,16 @@ export async function eventRunner(
 		.setURL(getDocsURL(ver, className))
 		.setDescription(event.description)
 		.addField("Parameters", Strings.truncate(event.params.map(p =>
-				`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
-			).join("\n") || "NONE", 1000))
+			`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`
+		).join("\n") || "NONE", 1000))
 		.setColor(0x5097D8);
 
-		if(events.length > 1) {
-			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
-			e.setFooter(`Event ${index + 1}/${events.length}`);
-		}
+	if (events.length > 1) {
+		com
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+		e.setFooter(`Event ${index + 1}/${events.length}`);
+	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -579,30 +578,30 @@ export async function propertyRunner(
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	let properties = json[className]?.properties;
-	if(!properties) {
+	if (!properties) {
 		const key = Object.keys(json).find(k => k.toLowerCase() === className);
-		if(key) {
+		if (key) {
 			className = key;
 			properties = json[className]?.properties;
 		}
-		if(!properties) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+		if (!properties) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
 	}
 	let property = properties.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
-	if(page !== null) {
-		if(page < 1) page = properties.length;
-		if(page > properties.length) page = 1;
+	if (page !== null) {
+		if (page < 1) page = properties.length;
+		if (page > properties.length) page = 1;
 		property = properties[page - 1];
 		otherName = property.name;
 	}
 
 
-	if(!property) {
+	if (!property) {
 		const discordIsDumb = otherName!.split("-> ")[1];
-		if(discordIsDumb) {
+		if (discordIsDumb) {
 			otherName = discordIsDumb;
 			property = properties.find(p => p.name === discordIsDumb);
 		}
-		if(!property) return handleIssue("invalid_property", ver, req, res, false, className, otherName);
+		if (!property) return handleIssue("invalid_property", ver, req, res, false, className, otherName);
 	}
 	const index = properties.indexOf(property);
 
@@ -613,12 +612,12 @@ export async function propertyRunner(
 		.setDescription(Strings.truncate(`\`${Array.isArray(property.type) ? property.type.join(" | ") : property.type}\`${property.nullable ? " - Nullable" : ""}${property.optional ? " - Optional" : ""}\n${property.description}`, 1000))
 		.setColor(0x5097D8);
 
-		if(properties.length > 1) {
-			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
-			e.setFooter(`Property ${index + 1}/${properties.length}`);
-		}
+	if (properties.length > 1) {
+		com
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+		e.setFooter(`Property ${index + 1}/${properties.length}`);
+	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -658,26 +657,26 @@ export async function methodRunner(
 	const [json, ver] = await loadJSON(decoded?.version || version || undefined);
 	if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 	let methods = json[className]?.methods;
-	if(!methods) {
+	if (!methods) {
 		const key = Object.keys(json).find(k => k.toLowerCase() === className);
-		if(key) {
+		if (key) {
 			className = key;
 			methods = json[className]?.methods;
 		}
-		if(!methods) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
+		if (!methods) return handleIssue("invalid_class", ver, req, res, false, className, otherName);
 	}
 	let method = methods.find(e => e.name.toLowerCase() === otherName?.toLowerCase());
-	if(page !== null) {
-		if(page < 1) page = methods.length;
-		if(page > methods.length) page = 1;
+	if (page !== null) {
+		if (page < 1) page = methods.length;
+		if (page > methods.length) page = 1;
 		method = methods[page - 1];
 		otherName = method.name;
 	}
 
 
-	if(!method) {
+	if (!method) {
 		const discordIsDumb = otherName!.split("-> ")[1]?.split("(")[0];
-		if(discordIsDumb) {
+		if (discordIsDumb) {
 			otherName = discordIsDumb;
 			method = methods.find(m => m.name === discordIsDumb);
 		}
@@ -691,16 +690,16 @@ export async function methodRunner(
 		.setURL(getDocsURL(ver, className))
 		.setDescription(method.description)
 		.addField("Parameters", Strings.truncate(method.params.map(p =>
-				`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`,
-			).join("\n") || "NONE", 1000))
+			`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`
+		).join("\n") || "NONE", 1000))
 		.setColor(0x5097D8);
 
-		if(methods.length > 1) {
-			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
-			e.setFooter(`Method ${index + 1}/${methods.length}`);
-		}
+	if (methods.length > 1) {
+		com
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+		e.setFooter(`Method ${index + 1}/${methods.length}`);
+	}
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
