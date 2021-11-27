@@ -449,14 +449,14 @@ export async function classRunner(
 	}
 	if(c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false)
 	e.setFooter(`Class ${index + 1}/${keys.length}`);
-	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u25c0\ufe0f"), "Class");
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_triangle_left:914020367167791166>", "custom"), "Class");
 	if (components) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"), "Page")
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"), "Page");
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_left:914023268992823366>", "custom"), "Page")
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_right:914023268627939359>", "custom"), "Page");
 		e.setFooter(`Class ${index + 1}/${keys.length} | Page ${page}/${pages}`);
 	}
-	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u25b6\ufe0f"), "Class")
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_triangle_right:914020367444606987>", "custom"), "Class")
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -535,8 +535,8 @@ export async function eventRunner(
 
 		if(events.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_left:914023268992823366>", "custom"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_right:914023268627939359>", "custom"));
 			e.setFooter(`Event ${index + 1}/${events.length}`);
 		}
 
@@ -614,8 +614,8 @@ export async function propertyRunner(
 
 		if(properties.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_left:914023268992823366>", "custom"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_right:914023268627939359>", "custom"));
 			e.setFooter(`Property ${index + 1}/${properties.length}`);
 		}
 
@@ -696,8 +696,8 @@ export async function methodRunner(
 
 		if(methods.length > 1) {
 			com
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u2b05\ufe0f"))
-				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("\u27a1\ufe0f"));
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_left:914023268992823366>", "custom"))
+				.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial("<:white_arrow_right:914023268627939359>", "custom"));
 			e.setFooter(`Method ${index + 1}/${methods.length}`);
 		}
 
