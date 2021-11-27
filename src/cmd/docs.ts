@@ -86,34 +86,46 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 				flags: MessageFlags.Ephemeral
 			}
 		});
-		case "invalid_class": return void res.status(200).json({
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `The class "${className!}" is invalid.`,
-				flags: MessageFlags.Ephemeral
-			}
-		});
-		case "invalid_event": return void res.status(200).json({
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid."`,
-				flags: MessageFlags.Ephemeral
-			}
-		});
-		case "invalid_property": return void res.status(200).json({
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `The property "${className || "unknown"}#${otherName || "unknown"}" is invalid."`,
-				flags: MessageFlags.Ephemeral
-			}
-		});
-		case "invalid_method": return void res.status(200).json({
-			type: InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid."`,
-				flags: MessageFlags.Ephemeral
-			}
-		});
+		case "invalid_class": {
+			console.debug("[%s] Invalid Class (%s), raw: %s", new Date().toISOString(), className || "unknown", JSON.stringify(req.body));
+			return void res.status(200).json({
+				type: InteractionResponseType.ChannelMessageWithSource,
+				data: {
+					content: `The class "${className!}" is invalid.`,
+					flags: MessageFlags.Ephemeral
+				}
+			});
+		}
+		case "invalid_event": {
+			console.debug("[%s] Invalid Event (%s#event:%s), raw: %s", new Date().toISOString(), className || "unknown", otherName || "unknown", JSON.stringify(req.body));
+			return void res.status(200).json({
+				type: InteractionResponseType.ChannelMessageWithSource,
+				data: {
+					content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid."`,
+					flags: MessageFlags.Ephemeral
+				}
+			});
+		}
+		case "invalid_property": {
+			console.debug("[%s] Invalid Property (%s#%s), raw: %s", new Date().toISOString(), className || "unknown", otherName || "unknown", JSON.stringify(req.body));
+			return void res.status(200).json({
+				type: InteractionResponseType.ChannelMessageWithSource,
+				data: {
+					content: `The property "${className || "unknown"}#${otherName || "unknown"}" is invalid."`,
+					flags: MessageFlags.Ephemeral
+				}
+			});
+		}
+		case "invalid_method": {
+			console.debug("[%s] Invalid Method (%s#%s()), raw: %s", new Date().toISOString(), className || "unknown", otherName || "unknown", JSON.stringify(req.body));
+			return void res.status(200).json({
+				type: InteractionResponseType.ChannelMessageWithSource,
+				data: {
+					content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid."`,
+					flags: MessageFlags.Ephemeral
+				}
+			});
+		}
 	}
 }
 
