@@ -33,7 +33,7 @@
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.11.7",
     "@types/node-fetch": "^2.5.12",
-    "@uwu-codes/eslint-config": "^1.0.27",
+    "@uwu-codes/eslint-config": "^1.0.29",
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.5",
     "discord-api-types": "next",
