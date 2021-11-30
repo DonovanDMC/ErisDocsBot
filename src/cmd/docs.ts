@@ -538,7 +538,7 @@ export async function eventRunner(
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
 		.setTitle(`${className}#event:${event.name} @ ${ver}`)
-		.setURL(getDocsURL(ver, className))
+		.setURL(getDocsURL(ver, className, "event", otherName!))
 		.setDescription(event.description)
 		.addField("Parameters", Strings.truncate(event.params.map(p =>
 			`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`
@@ -620,7 +620,7 @@ export async function propertyRunner(
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
 		.setTitle(`${className}#${property.name} @ ${ver}`)
-		.setURL(getDocsURL(ver, className))
+		.setURL(getDocsURL(ver, className, "property", otherName!))
 		.setDescription(Strings.truncate(`\`${Array.isArray(property.type) ? property.type.join(" | ") : property.type}\`${property.nullable ? " - Nullable" : ""}${property.optional ? " - Optional" : ""}\n${property.description}`, 1000))
 		.setColor(0x5097D8);
 
@@ -699,7 +699,7 @@ export async function methodRunner(
 	const com = new ComponentHelper();
 	const e = new EmbedBuilder()
 		.setTitle(`${className}#${method.name}() @ ${ver}`)
-		.setURL(getDocsURL(ver, className))
+		.setURL(getDocsURL(ver, className, "method", otherName!))
 		.setDescription(method.description)
 		.addField("Parameters", Strings.truncate(method.params.map(p =>
 			`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`
