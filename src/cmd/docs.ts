@@ -387,7 +387,6 @@ export async function classRunner(
 	className: string,
 	otherName: string | null,
 	page = 1,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	decoded?: DecodedCustomID,
 	cmd?: string,
 	version?: string
@@ -500,7 +499,6 @@ export async function eventRunner(
 	className: string,
 	otherName: string | null,
 	page: number | null,
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	decoded?: DecodedCustomID,
 	cmd?: string,
 	version?: string
@@ -704,6 +702,7 @@ export async function methodRunner(
 		.addField("Parameters", Strings.truncate(method.params.map(p =>
 			`\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`
 		).join("\n") || "NONE", 1000))
+		.addField("Return Type", `\`${Array.isArray(method.returns.type) ? method.returns.type.join("`, `") : method.returns.type}\`\n${method.returns.description || ""}`)
 		.setColor(0x5097D8);
 
 	if (methods.length > 1) {
