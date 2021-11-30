@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/DonovanDMC/ErisDocsBot#readme",
   "dependencies": {
-    "@uwu-codes/utils": "^1.0.60",
+    "@uwu-codes/utils": "^1.0.61",
     "chunk": "^0.0.3",
     "express": "^4.17.1",
     "fuzzy-search": "^3.2.1",
@@ -31,12 +31,12 @@
     "@types/fs-extra": "^9.0.13",
     "@types/fuzzy-search": "^2.1.1",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^16.11.10",
+    "@types/node": "^16.11.11",
     "@types/node-fetch": "^2.5.12",
     "@uwu-codes/eslint-config": "^1.0.31",
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.5",
-    "discord-api-types": "^0.25.0-next.d333962.1638016160",
+    "discord-api-types": "^0.25.1",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   },
