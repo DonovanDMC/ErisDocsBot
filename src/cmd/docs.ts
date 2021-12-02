@@ -65,7 +65,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 		} : {
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `The version "${ver}" is too low, the lowest we support is 0.14.0"`,
+				content: `The version "${ver}" is too low, the lowest we support is 0.14.0`,
 				flags: MessageFlags.Ephemeral
 			}
 		});
@@ -101,7 +101,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			return void res.status(200).json({
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
-					content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid."`,
+					content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid.`,
 					flags: MessageFlags.Ephemeral
 				}
 			});
@@ -121,7 +121,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			return void res.status(200).json({
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
-					content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid."`,
+					content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid.`,
 					flags: MessageFlags.Ephemeral
 				}
 			});
@@ -162,8 +162,15 @@ export default new Command("docs", "Get information about Eris' classes and func
 		const sub = options[0].name as "class" | "event" | "property" | "method";
 		const subOptions = options[0].options;
 		// constants will be handled separately
-		const className = subOptions[0].value as Exclude<keyof Exclude<typeof json, null>, "Constants">;
+		const className = subOptions[0].value;
 		const otherName = subOptions[1]?.value || null;
+		if (subOptions[0]?.value === "more_count" || subOptions[1]?.value === "more_count") return res.status(200).json({
+			type: InteractionResponseType.ChannelMessageWithSource,
+			data: {
+				content: "You know that isn't a valid option, what are you playing at here?",
+				flags: MessageFlags.Ephemeral
+			}
+		});
 		const [json, ver] = await loadJSON();
 		if (typeof json !== "object") return handleIssue(json, ver, req, res, false, className, otherName);
 
@@ -261,20 +268,9 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 		});
 	}
 
-	// property
+	// property, event, method
 	if (subOptions[1]?.focused === true) {
 		const c = json[subOptions[0].value];
-		if (subOptions[0].value === "more_count") return res.status(200).json({
-			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-			data: {
-				choices: [
-					{
-						name: "You know that isn't a valid option, what are you playing at here?",
-						value: "invalid_class"
-					}
-				]
-			}
-		});
 		if (c === undefined) return res.status(200).json({
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 			data: {
