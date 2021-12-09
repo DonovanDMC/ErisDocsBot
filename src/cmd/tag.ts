@@ -25,6 +25,7 @@ export default new Command("tag", "Get the content of a specific tag.")
 							.setTitle("Giving Version Information")
 							.setDescription([
 								"If you are asked to provide information about what version of Eris you are using, please do not say \"latest\", \"github\", \"dev\", or anything similar.",
+								"",
 								"This is essentially meaningless to us as we do not know what you are considering the latest, as you could be running an outdated version."
 							])
 							.toJSON(),
