@@ -99,8 +99,8 @@ export default async function registerCommands(commands: Array<Command>, force =
 			body: JSON.stringify(commands)
 		});
 		const body = await update.json() as RESTPutAPIApplicationGuildCommandsResult;
+		createdPer = createdTotal = body.length;
 		if (update.status !== 200) {
-			createdPer = createdTotal = body.length;
 			console.error("Failed To PUT Commands");
 			console.error(update.status, update.statusText, util.inspect(body, { depth: null }));
 			return;
