@@ -10,7 +10,7 @@ export default new Command("tag", "Get the content of a specific tag.")
 			name: "Version",
 			value: "version"
 		}
-	])
+	], true)
 	.setExecutor(async function (interaction, req, res) {
 		log(interaction, "tag", "command");
 		const tag = (interaction.data.options?.[0] as ApplicationCommandInteractionDataOptionString | undefined)?.value;
