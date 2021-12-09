@@ -43,7 +43,7 @@ export default new Command("tag", "Get the content of a specific tag.")
 							.setTitle("Installed From Github")
 							.setDescription([
 								"Run the command `npm ls eris` in your project, and give us the commit hash after the \"#\".",
-								"For example, he commit hash in this screenshot is **29a3a635a241a4ab8725c25afa839f29542e1731**, version **0.16.2-dev** (the version number is mostly irrelevant).",
+								"For example, the commit hash in this screenshot is **29a3a635a241a4ab8725c25afa839f29542e1731**, version **0.16.2-dev** (the version number is mostly irrelevant).",
 								"",
 								"If you've installed from a fork ([for instance](https://github.com/DonovanDMC/Eris)) the process above still applies, but make sure to tell us what fork you are using."
 							])
