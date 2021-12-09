@@ -28,22 +28,27 @@ export default new Command("tag", "Get the content of a specific tag.")
 								"",
 								"This is essentially meaningless to us as we do not know what you are considering the latest, you could be running an outdated version for all we know."
 							])
+							.setColor(0x4E98D8)
 							.toJSON(),
 						new EmbedBuilder()
 							.setTitle("Installed From NPM")
 							.setDescription([
 								"Run the command `npm ls eris` in your project, and give us the number after the \"@\".",
-								"[for example](https://eris.owo-whats-this.dev/eris_version_0161.png), the version in this screenshot is **0.16.1**, on the third line."
+								"For example, the version in this screenshot is **0.16.1**, on the third line."
 							])
+							.setImage("https://eris.owo-whats-this.dev/eris_version_0161.png")
+							.setColor(0x4E98D8)
 							.toJSON(),
 						new EmbedBuilder()
 							.setTitle("Installed From Github")
 							.setDescription([
 								"Run the command `npm ls eris` in your project, and give us the commit hash after the \"#\".",
-								"[for example](https://eris.owo-whats-this.dev/eris_version_dev.png), the commit hash in this screenshot is **29a3a635a241a4ab8725c25afa839f29542e1731**, version **0.16.2-dev** (the version number is mostly irrelevant).",
+								"For example, he commit hash in this screenshot is **29a3a635a241a4ab8725c25afa839f29542e1731**, version **0.16.2-dev** (the version number is mostly irrelevant).",
 								"",
 								"If you've installed from a fork ([for instance](https://github.com/DonovanDMC/Eris)) the process above still applies, but make sure to tell us what fork you are using."
 							])
+							.setImage("https://eris.owo-whats-this.dev/eris_version_dev.png")
+							.setColor(0x4E98D8)
 							.toJSON()
 					]
 				}
