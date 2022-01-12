@@ -1,7 +1,3 @@
 {
-	"upgrade": true,
-	"reject": [
-		"node-fetch",
-		"@types/node-fetch"
-	]
+	"upgrade": true
 }

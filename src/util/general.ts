@@ -96,7 +96,7 @@ export function encodeCustomID(section: "class" | "event" | "property" | "method
 	].join(",")).toString("base64").replace(/=/g, "");
 }
 export function decodeCustomID(input: string) {
-	const d = Buffer.from(input, "base64").toString("ascii").toString().split(",") as EncodedCustomID;
+	const d = Buffer.from(input, "base64").toString("ascii").split(",") as EncodedCustomID;
 	const s = Number(d[0]);
 	const a = Number(d[1]);
 	const c = Number(d[2]);

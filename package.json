@@ -22,7 +22,6 @@
     "express": "^4.17.1",
     "fuzzy-search": "^3.2.1",
     "morgan": "^1.10.0",
-    "node-fetch": "^2.6.2",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
@@ -32,7 +31,6 @@
     "@types/fuzzy-search": "^2.1.1",
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.11.12",
-    "@types/node-fetch": "^2.5.12",
     "@uwu-codes/eslint-config": "^1.0.31",
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.6",
