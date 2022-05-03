@@ -1,8 +1,8 @@
-import type { ApplicationCommandInteractionDataOptionString } from "../../node_modules/discord-api-types/v9";
-import { InteractionResponseType } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
 import { log } from "../util/general";
 import EmbedBuilder from "../util/EmbedBuilder";
+import { InteractionResponseType, MessageFlags } from "discord-api-types/v9";
+import type { ApplicationCommandInteractionDataOptionString } from "discord-api-types/v9";
 
 export default new Command("tag", "Get the content of a specific tag.")
 	.addStringOption("tag", "The tag to get the content of.", [
@@ -50,7 +50,8 @@ export default new Command("tag", "Get the content of a specific tag.")
 							.setImage("https://eris.owo-whats-this.dev/eris_version_dev.png")
 							.setColor(0x4E98D8)
 							.toJSON()
-					]
+					],
+					flags: interaction.member && interaction.guild_id === "831967755447828491" && !["831967755447828493", "838134914539847720"].some(r => !interaction.member!.roles.includes(r)) ? MessageFlags.Ephemeral : 0
 				}
 			});
 		}
