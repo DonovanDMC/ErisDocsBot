@@ -9,6 +9,11 @@ if (!outFile || !fs.existsSync(path.dirname(outFile))) throw new Error("invalid 
 const final = {};
 const events = [];
 
+function removeDotFromName(input) {
+	if(Array.isArray(input)) return input.map(removeDotFromName);
+	return input.replace(/\./g, "");
+}
+
 const stdout = process.argv.join(" ").includes("--stdout");
 function pr(file, name) {
 	if (JSON.stringify(file) === "[]") {
@@ -61,7 +66,7 @@ function parseDefinition(n, d) {
 				description: p.description,
 				optional: !!p.optional,
 				nullable: !!p.nullable,
-				type: p.type.names.length === 1 ? p.type.names[0] : p.type.names
+				type: removeDotFromName(p.type.names.length === 1 ? p.type.names[0] : p.type.names)
 			}))
 		},
 		events: [], // done later because of odd locations
@@ -70,7 +75,7 @@ function parseDefinition(n, d) {
 			description: p.description,
 			optional: !!p.optional,
 			nullable: !!p.nullable,
-			type: p.type.names.length === 1 ? p.type.names[0] : p.type.names
+			type: removeDotFromName(p.type.names.length === 1 ? p.type.names[0] : p.type.names)
 		})),
 		methods: d.filter(node => node.meta.code.type === "MethodDefinition").map(m => ({
 			name: m.name,
@@ -80,10 +85,10 @@ function parseDefinition(n, d) {
 				name: p.name,
 				description: p.description,
 				optional: !!p.optional,
-				type: p.type.names.length === 1 ? p.type.names[0] : p.type.names
+				type: removeDotFromName(p.type.names.length === 1 ? p.type.names[0] : p.type.names)
 			})),
 			// haven't personally seen more than one returns element
-			returns: m.returns === undefined ? { type: "void", description: null } : m.returns[0].type.names[0] === "Promise" ? { type: "Promise<void>", description: null } : m.returns[0].type.names.length === 1 ? { type: m.returns[0].type.names[0], description: m.returns[0].description || null } : { type: m.returns[0].type.names, description: m.returns[0].description || null }
+			returns: m.returns === undefined ? { type: "void", description: null } : m.returns[0].type.names[0] === "Promise" ? { type: "Promise<void>", description: null } : m.returns[0].type.names.length === 1 ? { type: removeDotFromName(m.returns[0].type.names[0]), description: m.returns[0].description || null } : { type: removeDotFromName(m.returns[0].type.names), description: m.returns[0].description || null }
 		}))
 	};
 	return def;
@@ -106,7 +111,7 @@ for (const event of events) {
 			description: p.description,
 			optional: !!p.optional,
 			nullable: !!p.nullable,
-			type: p.type.names.length === 1 ? p.type.names[0] : p.type.names
+			type: removeDotFromName(p.type.names.length === 1 ? p.type.names[0] : p.type.names)
 		}))
 	});
 }
