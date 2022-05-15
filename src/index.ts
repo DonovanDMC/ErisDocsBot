@@ -91,7 +91,6 @@ const server = express()
 			const classFuzz = new FuzzySearch(Object.keys(json).map(сlass => json[сlass]), ["name"], {
 				sort: true
 			});
-			console.log(classSearch, eventSearch, methodSearch, propertySearch);
 			const classes = classFuzz.search(classSearch);
 
 			let eventList = [] as Array<AST.EventDefinition & { class: string; }>, methodList = [] as Array<AST.MethodDefinition & { class: string; }>, propertyList = [] as Array<AST.PropertyDefinition & { class: string; }>;
@@ -136,6 +135,7 @@ const server = express()
 				}
 			});
 		})
+		.use(async(req, res) => res.status(404).json({ success: false, error: "Not Found" }))
 	)
 	.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 		const isVerified = nacl.sign.detached.verify(
@@ -196,7 +196,7 @@ const server = express()
 			}
 		}
 	})
-	.use("*", async (req, res) => res.end("You shouldn't be here."));
+	.use(async (req, res) => res.status(404).end());
 
 
 server.listen(config.port, config.host, () => console.log("Listening on http://%s:%s", config.host, config.port));
