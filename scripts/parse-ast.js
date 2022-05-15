@@ -45,7 +45,7 @@ function parseDefinition(n, d) {
 		if (!stdout) console.error(chalk.red(`[FAIL] ${n} - no class definition`));
 		return null;
 	}
-	if (classDeclaration.name !== "BrowserWebSocket") {
+	if (classDeclaration.name === "BrowserWebSocket") {
 		if (!stdout) console.error(chalk.yellow(`[SKIP] ${n} - no class definition`));
 		return null;
 	}
