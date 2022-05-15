@@ -5,7 +5,8 @@ import { Time } from "@uwu-codes/utils";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 
-const scriptDir = `${__dirname}/../..${__filename.endsWith(".ts") ? "" : "/.."}/scripts`;
+
+const scriptDir = "/app/scripts";
 execSync(`mkdir -p ${config.dataDir}/versions`);
 // 0.14.0, first zero gets omitted
 export const minVersion = 140;
@@ -106,11 +107,11 @@ export function decodeCustomID(input: string) {
 	const userId = d[6];
 	const cmd = d[7];
 	return {
-		section: (s === 1 ? "class" : s === 2 ? "event" : s === 3 ? "property" : s === 4 ? "method" : "unknown" as never),
-		action: (a === 1 ? "prev" : a === 2 ? "next" : a === 3 ? "prev_class" : a === 4 ? "next_class" : "unknown" as never),
-		className: reverseMapping(c),
-		otherName: o === 0 ? null : reverseMapping(o),
-		version: reverseMapping(v),
+		section:     (s === 1 ? "class" : s === 2 ? "event" : s === 3 ? "property" : s === 4 ? "method" : "unknown" as never),
+		action:      (a === 1 ? "prev" : a === 2 ? "next" : a === 3 ? "prev_class" : a === 4 ? "next_class" : "unknown" as never),
+		className:   reverseMapping(c),
+		otherName:   o === 0 ? null : reverseMapping(o),
+		version:     reverseMapping(v),
 		currentPage: p,
 		userId,
 		cmd

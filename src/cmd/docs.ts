@@ -2,7 +2,6 @@ import Command from "../util/Command";
 import type { DecodedCustomID } from "../util/general";
 import { log, loadJSON, encodeCustomID, getDocsURL } from "../util/general";
 import EmbedBuilder from "../util/EmbedBuilder";
-import ComponentHelper from "../util/ComponentHelper";
 import emojis from "../../emojis.json";
 import type { APIApplicationCommandAutocompleteInteraction } from "discord-api-types/payloads/v9/_interactions/autocomplete";
 import type { Request, Response } from "express";
@@ -19,15 +18,17 @@ import type {
 	APIInteractionResponseUpdateMessage,
 	APIMessageComponentInteraction,
 	ApplicationCommandInteractionDataOptionString,
-	ApplicationCommandInteractionDataOptionSubCommand
+	ApplicationCommandInteractionDataOptionSubCommand,
+	APIActionRowComponent
 } from "discord-api-types/v9";
+import ComponentHelper from "@discord-additions/components";
 
 export function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
 	if (values.length < max) return values;
 	else return [
 		...values.slice(0, max - 1),
 		{
-			name: `(And ${values.length - (max - 1)} More)`,
+			name:  `(And ${values.length - (max - 1)} More)`,
 			value: "more_count"
 		}
 	];
@@ -40,7 +41,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			data: {
 				choices: [
 					{
-						name: `Invalid Version "${ver}"`,
+						name:  `Invalid Version "${ver}"`,
 						value: "version_invalid"
 					}
 				]
@@ -49,7 +50,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: `Invalid Version "${ver}"`,
-				flags: MessageFlags.Ephemeral
+				flags:   MessageFlags.Ephemeral
 			}
 		});
 		case "low": return void res.status(200).json(autocomplete ? {
@@ -57,7 +58,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			data: {
 				choices: [
 					{
-						name: `The version "${ver}" is too low, the lowest we support is 0.14.0"`,
+						name:  `The version "${ver}" is too low, the lowest we support is 0.14.0"`,
 						value: "version_low"
 					}
 				]
@@ -66,7 +67,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: `The version "${ver}" is too low, the lowest we support is 0.14.0`,
-				flags: MessageFlags.Ephemeral
+				flags:   MessageFlags.Ephemeral
 			}
 		});
 		case "loading": return void res.status(200).json(autocomplete ? {
@@ -74,7 +75,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			data: {
 				choices: [
 					{
-						name: `The version "${ver}" is still loading.`,
+						name:  `The version "${ver}" is still loading.`,
 						value: "version_loading"
 					}
 				]
@@ -83,7 +84,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: `The version "${ver}" is still loading.`,
-				flags: MessageFlags.Ephemeral
+				flags:   MessageFlags.Ephemeral
 			}
 		});
 		case "invalid_class": {
@@ -92,7 +93,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
 					content: `The class "${className!}" is invalid.`,
-					flags: MessageFlags.Ephemeral
+					flags:   MessageFlags.Ephemeral
 				}
 			});
 		}
@@ -102,7 +103,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
 					content: `The event "${className || "unknown"}#event:${otherName || "unknown"}" is invalid.`,
-					flags: MessageFlags.Ephemeral
+					flags:   MessageFlags.Ephemeral
 				}
 			});
 		}
@@ -112,7 +113,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
 					content: `The property "${className || "unknown"}#${otherName || "unknown"}" is invalid."`,
-					flags: MessageFlags.Ephemeral
+					flags:   MessageFlags.Ephemeral
 				}
 			});
 		}
@@ -122,7 +123,7 @@ export function handleIssue(json: "invalid" | "low" | "loading" | `invalid_${"cl
 				type: InteractionResponseType.ChannelMessageWithSource,
 				data: {
 					content: `The method "${className || "unknown"}#${otherName || "unknown"}()" is invalid.`,
-					flags: MessageFlags.Ephemeral
+					flags:   MessageFlags.Ephemeral
 				}
 			});
 		}
@@ -168,7 +169,7 @@ export default new Command("docs", "Get information about Eris' classes and func
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: "You know that isn't a valid option, what are you playing at here?",
-				flags: MessageFlags.Ephemeral
+				flags:   MessageFlags.Ephemeral
 			}
 		});
 		const [json, ver] = await loadJSON();
@@ -196,8 +197,8 @@ export default new Command("docs", "Get information about Eris' classes and func
 			// @ts-expect-error -- return expects something component related
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `This button is not for you, <@!${user.id}>.`,
-				flags: MessageFlags.Ephemeral,
+				content:          `This button is not for you, <@!${user.id}>.`,
+				flags:            MessageFlags.Ephemeral,
 				allowed_mentions: {
 					users: []
 				}
@@ -276,7 +277,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 			data: {
 				choices: [
 					{
-						name: "You broke something, what funny business are you up to?",
+						name:  "You broke something, what funny business are you up to?",
 						value: "invalid_class"
 					}
 				]
@@ -290,7 +291,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					data: {
 						choices: [
 							{
-								name: "(None)",
+								name:  "(None)",
 								value: "no_events"
 							}
 						]
@@ -305,7 +306,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 				choices = truncateChoices(c.events.map(e => {
 					const p: string = e.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
 					return {
-						name: `${subOptions[0].value} -> ${e.name}(${p})`,
+						name:  `${subOptions[0].value} -> ${e.name}(${p})`,
 						value: e.name
 					};
 				}), 25);
@@ -318,7 +319,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					data: {
 						choices: [
 							{
-								name: "(None)",
+								name:  "(None)",
 								value: "no_properties"
 							}
 						]
@@ -331,7 +332,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					c.properties = fuzzy.search(subOptions[1].value);
 				}
 				choices = truncateChoices(c.properties.map(p => ({
-					name: `${subOptions[0].value} -> ${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}`,
+					name:  `${subOptions[0].value} -> ${p.nullable ? "?" : ""}${p.name}${p.optional ? "?" : ""}`,
 					value: p.name
 				})), 25);
 				break;
@@ -343,7 +344,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 					data: {
 						choices: [
 							{
-								name: "(None)",
+								name:  "(None)",
 								value: "no_methods"
 							}
 						]
@@ -358,7 +359,7 @@ export async function handleAutoComplete(this: Command, interaction: APIApplicat
 				choices = truncateChoices(c.methods.map(m => {
 					const p: string = m.params.map(pr => `${pr.nullable ? "?" : ""}${pr.name}${pr.optional ? "?" : ""}`).join(", ");
 					return {
-						name: `${subOptions[0].value} -> ${m.name}(${p})`,
+						name:  `${subOptions[0].value} -> ${m.name}(${p})`,
 						value: m.name
 					};
 				}), 25);
@@ -456,14 +457,14 @@ export async function classRunner(
 	}
 	if (c.constructor.params.length > 1 && c.constructor.description) e.addField("Constructor", Strings.truncate(`${c.constructor.description}\n\n${c.constructor.params.map(p => `\`${p.name}\` - ${Array.isArray(p.type) ? p.type.join(" | ") : p.type}${p.nullable ? " - Nullable" : ""}${p.optional ? " - Optional" : ""}\n${p.description}\n`).join("\n")}`, 1000), false);
 	e.setFooter(`Class ${index + 1}/${keys.length}`);
-	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.small_left, "custom"), "Class");
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), "Class", ComponentHelper.emojiToPartial(emojis.small_left, "custom"));
 	if (components) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"), "Page")
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"), "Page");
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "prev", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), "Page", ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), "Page", ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
 		e.setFooter(`Class ${index + 1}/${keys.length} | Page ${page}/${pages}`);
 	}
-	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.small_right, "custom"), "Class");
+	com.addInteractionButton(ButtonStyle.Primary, encodeCustomID("class", "next_class", c.name, null, ver, page, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), "Class", ComponentHelper.emojiToPartial(emojis.small_right, "custom"));
 
 	if (interaction.type === InteractionType.ApplicationCommand) return res.status(200).json({
 		type: InteractionResponseType.ChannelMessageWithSource,
@@ -471,7 +472,7 @@ export async function classRunner(
 			embeds: [
 				e.toJSON()
 			],
-			components: com.toJSON()
+			components: com.toJSON() as Array<APIActionRowComponent>
 		}
 	});
 	else {
@@ -481,7 +482,7 @@ export async function classRunner(
 				embeds: [
 					e.toJSON()
 				],
-				components: com.toJSON()
+				components: com.toJSON() as Array<APIActionRowComponent>
 			}
 		});
 	}
@@ -541,8 +542,8 @@ export async function eventRunner(
 
 	if (events.length > 1) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("event", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
 		e.setFooter(`Event ${index + 1}/${events.length}`);
 	}
 
@@ -552,7 +553,7 @@ export async function eventRunner(
 			embeds: [
 				e.toJSON()
 			],
-			components: com.toJSON()
+			components: com.toJSON() as Array<APIActionRowComponent>
 		}
 	});
 	else {
@@ -562,7 +563,7 @@ export async function eventRunner(
 				embeds: [
 					e.toJSON()
 				],
-				components: com.toJSON()
+				components: com.toJSON() as Array<APIActionRowComponent>
 			}
 		});
 	}
@@ -620,8 +621,8 @@ export async function propertyRunner(
 
 	if (properties.length > 1) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("property", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
 		e.setFooter(`Property ${index + 1}/${properties.length}`);
 	}
 
@@ -631,7 +632,7 @@ export async function propertyRunner(
 			embeds: [
 				e.toJSON()
 			],
-			components: com.toJSON()
+			components: com.toJSON() as Array<APIActionRowComponent>
 		}
 	});
 	else {
@@ -641,7 +642,7 @@ export async function propertyRunner(
 				embeds: [
 					e.toJSON()
 				],
-				components: com.toJSON()
+				components: com.toJSON() as Array<APIActionRowComponent>
 			}
 		});
 	}
@@ -703,8 +704,8 @@ export async function methodRunner(
 
 	if (methods.length > 1) {
 		com
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
-			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), false, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "prev", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_left, "custom"))
+			.addInteractionButton(ButtonStyle.Primary, encodeCustomID("method", "next", className, otherName, ver, index + 1, (interaction.user || interaction.member?.user)!.id, cmd || "docs"), undefined, ComponentHelper.emojiToPartial(emojis.arrow_right, "custom"));
 		e.setFooter(`Method ${index + 1}/${methods.length}`);
 	}
 
@@ -714,7 +715,7 @@ export async function methodRunner(
 			embeds: [
 				e.toJSON()
 			],
-			components: com.toJSON()
+			components: com.toJSON() as Array<APIActionRowComponent>
 		}
 	});
 	else {
@@ -724,7 +725,7 @@ export async function methodRunner(
 				embeds: [
 					e.toJSON()
 				],
-				components: com.toJSON()
+				components: com.toJSON() as Array<APIActionRowComponent>
 			}
 		});
 	}

@@ -1,0 +1,28 @@
+  
+version: "3"
+
+services:
+  eris-docs-bot:
+    container_name: eris-docs-bot
+    build: .
+    volumes:
+      - data:/data:z
+    restart: always
+    hostname: eris-docs-bot.containers.local
+    networks:
+      default:
+        ipv4_address: 172.19.4.2
+
+networks:
+  default:
+    name: eris-docs-bot
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.4.0/24
+          gateway: 172.19.4.1
+
+volumes:
+  modules: null
+  data: null

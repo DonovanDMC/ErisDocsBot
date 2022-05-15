@@ -8,20 +8,21 @@ import type { Request } from "express";
 import express from "express";
 import morgan from "morgan";
 import nacl from "tweetnacl";
-import type { APIChatInputApplicationCommandInteraction, APIInteraction, APIInteractionResponse } from "discord-api-types";
-import { MessageFlags, InteractionResponseType, InteractionType } from "discord-api-types";
+import type { APIChatInputApplicationCommandInteraction, APIInteraction, APIInteractionResponse } from "discord-api-types/v9";
+import { MessageFlags, InteractionResponseType, InteractionType } from "discord-api-types/v9";
 import type { ModuleImport } from "@uwu-codes/types";
-import * as fs from "fs";
+import { readdir } from "fs/promises";
+
 
 const commandMap = new Map<string, Command>();
-const commands = fs.readdirSync(`${__dirname}/cmd`).map(v => {
-	if (!v.endsWith(__filename.split(".").slice(-1)[0])) return;
+const commands = (await Promise.all((await readdir("/app/src/cmd")).map(async(v) => {
+	if (!v.endsWith(import.meta.url.split(".").slice(-1)[0])) return;
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const cmd = require(`${__dirname}/cmd/${v}`) as ModuleImport<Command> | Command;
+	const cmd = await import(`/app/src/cmd/${v}`) as ModuleImport<Command> | Command;
 	const d = "default" in cmd ? cmd.default : cmd;
 	commandMap.set(d.name, d);
 	return d;
-}).filter(Boolean) as Array<Command>;
+}))).filter(Boolean) as Array<Command>;
 void registerCommands(commands);
 const server = express()
 	.use(morgan("dev"))
@@ -32,22 +33,6 @@ const server = express()
 			});
 		}
 	}))
-	/* .use(async(req, res, next) => {
-		const oldWrite = res.write, oldEnd = res.end;
-		const chunks: Buffer[] = [];
-		res.write = (c) => {
-			chunks.push(c);
-			return oldWrite.apply(res, c);
-		};
-		res.end = function(c) {
-			if(c) chunks.push(c);
-			const body = JSON.parse(Buffer.concat(chunks).toString("utf-8"));
-			console.log(body.data.choices);
-			// @ts-ignore
-			oldEnd.apply(res, arguments);
-		}
-		return next();
-	}) */
 	.get("/r/:version/:class", async (req, res) =>
 		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}`)
 	).get("/r/:version/:class/:type/:other", async (req, res) =>
@@ -75,7 +60,7 @@ const server = express()
 					type: InteractionResponseType.ChannelMessageWithSource,
 					data: {
 						content: "Unknown Command.",
-						flags: MessageFlags.Ephemeral
+						flags:   MessageFlags.Ephemeral
 					}
 				});
 				void cmd.runCommand.call(cmd, req.body as APIChatInputApplicationCommandInteraction, req as Parameters<Command["runCommand"]>[1], res);
@@ -89,7 +74,7 @@ const server = express()
 					type: InteractionResponseType.ChannelMessageWithSource,
 					data: {
 						content: "Unknown Command.",
-						flags: MessageFlags.Ephemeral
+						flags:   MessageFlags.Ephemeral
 					}
 				});
 				void cmd.runComponent!.call(cmd, req.body, d, req as Parameters<Exclude<Command["runComponent"], undefined>>[2], res);
@@ -103,7 +88,7 @@ const server = express()
 					data: {
 						choices: [
 							{
-								name: "Unknown Command",
+								name:  "Unknown Command",
 								value: "unknown"
 							}
 						]

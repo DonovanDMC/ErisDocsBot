@@ -4,7 +4,10 @@
   "description": "HTTP base Discord bot for displaying Eris documentation",
   "main": "index.js",
   "scripts": {
-    "start": "npx ts-node src/index.ts"
+    "start": "node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
+    "down": "sudo docker-compose down --rmi 'all' --volumes --remove-orphans",
+    "up": "sudo docker-compose up --build -d",
+    "up:dev": "sudo docker-compose up --build"
   },
   "repository": {
     "type": "git",
@@ -17,26 +20,29 @@
   },
   "homepage": "https://github.com/DonovanDMC/ErisDocsBot#readme",
   "dependencies": {
-    "@uwu-codes/utils": "^1.0.61",
+    "@discord-additions/components": "^1.0.1",
+    "@uwu-codes/utils": "^1.0.65",
     "chunk": "^0.0.3",
-    "express": "^4.17.1",
+    "express": "^4.18.1",
     "fuzzy-search": "^3.2.1",
     "morgan": "^1.10.0",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "undici": "^5.2.0"
   },
   "devDependencies": {
     "@types/chunk": "^0.0.0",
     "@types/express": "^4.17.13",
     "@types/fs-extra": "^9.0.13",
-    "@types/fuzzy-search": "^2.1.1",
+    "@types/fuzzy-search": "^2.1.2",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^16.11.12",
-    "@uwu-codes/eslint-config": "^1.0.31",
+    "@types/node": "^17.0.33",
+    "@uwu-codes/eslint-config": "^1.0.43",
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.6",
     "discord-api-types": "^0.25.2",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.3"
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4"
   },
-  "keywords": []
+  "keywords": [],
+  "type": "module"
 }

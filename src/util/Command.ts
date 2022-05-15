@@ -122,7 +122,7 @@ export default class Command {
 
 	addAutocompleteOption(name: string, description: string, required = false) {
 		this.options.push({
-			type: ApplicationCommandOptionType.String,
+			type:         ApplicationCommandOptionType.String,
 			name,
 			description,
 			required,
@@ -148,10 +148,10 @@ export default class Command {
 
 	toJSON() {
 		return {
-			type: ApplicationCommandType.ChatInput,
-			name: this.name,
+			type:        ApplicationCommandType.ChatInput,
+			name:        this.name,
 			description: this.description,
-			options: this.options
+			options:     this.options
 		};
 	}
 }
@@ -257,7 +257,7 @@ class SubCommand {
 
 	addAutocompleteOption(name: string, description: string, required = false) {
 		this.options.push({
-			type: ApplicationCommandOptionType.String,
+			type:         ApplicationCommandOptionType.String,
 			name,
 			description,
 			required,
@@ -268,10 +268,10 @@ class SubCommand {
 
 	toJSON() {
 		return {
-			type: ApplicationCommandOptionType.Subcommand as const,
-			name: this.name,
+			type:        ApplicationCommandOptionType.Subcommand as const,
+			name:        this.name,
 			description: this.description,
-			options: this.options
+			options:     this.options
 		};
 	}
 

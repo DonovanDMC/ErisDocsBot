@@ -1,8 +1,8 @@
 import { InteractionResponseType, MessageFlags } from "../../node_modules/discord-api-types/v9";
 import Command from "../util/Command";
-import EmbedBuilder from "../util/EmbedBuilder";
 import { defaultVersion, log, minVersionString } from "../util/general";
 import pkg from "../../package.json";
+import EmbedBuilder from "../util/EmbedBuilder";
 
 export default new Command("help", "Learn how to use me.")
 	.setExecutor(async function (interaction, req, res) {

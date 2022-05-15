@@ -65,7 +65,7 @@ export default new Command("vdocs", "(version specific) Get information about Er
 			type: InteractionResponseType.ApplicationCommandAutocompleteResult,
 			data: {
 				choices: versions.map(ver => ({
-					name: ver,
+					name:  ver,
 					value: ver
 				}))
 			}
@@ -79,8 +79,8 @@ export default new Command("vdocs", "(version specific) Get information about Er
 			// @ts-expect-error -- return expects something component related
 			type: InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `This button is not for you, <@!${user.id}>.`,
-				flags: MessageFlags.Ephemeral,
+				content:          `This button is not for you, <@!${user.id}>.`,
+				flags:            MessageFlags.Ephemeral,
 				allowed_mentions: {
 					users: []
 				}

@@ -1,7 +1,7 @@
 import type Command from "./Command";
 import config from "../../config.json";
 import type { RESTPostOAuth2ClientCredentialsResult, RESTPutAPIApplicationGuildCommandsResult } from "discord-api-types/v9";
-import * as https from "https";
+import { fetch } from "undici";
 import * as fs from "fs";
 import util from "util";
 
@@ -45,31 +45,18 @@ export default async function registerCommands(commands: Array<Command>, force =
 
 	if (token === undefined) {
 		const d = Date.now();
-		let status: number | undefined, statusText: string | undefined;
-		const body = await new Promise<RESTPostOAuth2ClientCredentialsResult>((resolve, reject) => {
-			const req = https.request({
-				method: "POST",
-				hostname: "discord.com",
-				pathname: "/api/v9/oauth2/token",
-				headers: {
-					"Content-Type": "application/x-www-form-urlencoded",
-					"Authorization": `Basic ${Buffer.from(`${config.id}:${config.secret}`).toString("base64")}`
-				}
-			}, (res) => {
-				const r: Array<Buffer> = [];
-				status = res.statusCode;
-				statusText = res.statusMessage;
-				res
-					.on("error", (err) => reject(err))
-					.on("data", (c) => r.push(c as Buffer))
-					.on("end", () => resolve(JSON.parse(Buffer.concat(r).toString()) as RESTPostOAuth2ClientCredentialsResult));
-			});
-			req.write("grant_type=client_credentials&scope=applications.commands.update");
-			req.end();
+		const req = await fetch("https://discord.com/api/v9/oauth2/token", {
+			method:  "POST",
+			headers: {
+				"Content-Type":  "application/x-www-form-urlencoded",
+				"Authorization": `Basic ${Buffer.from(`${config.id}:${config.secret}`).toString("base64")}`
+			},
+			body: "grant_type=client_credentials&scope=applications.commands.update"
 		});
+		const body = await req.json() as RESTPostOAuth2ClientCredentialsResult;
 		if (!("access_token" in body)) {
 			console.error("We failed to obtain an access token.");
-			console.error(status, statusText, body);
+			console.error(req.status, req.statusText, body);
 			return;
 		}
 
@@ -84,64 +71,37 @@ export default async function registerCommands(commands: Array<Command>, force =
 
 	let createdPer = 0, createdTotal = 0;
 	if (config.useGuildCommands) {
-		for (const guild of config.guilds) {
-			let status: number | undefined, statusText: string | undefined;
-			const body = await new Promise<RESTPutAPIApplicationGuildCommandsResult>((resolve, reject) => {
-				const req = https.request({
-					method: "PUT",
-					hostname: "discord.com",
-					pathname: `/api/v9/applications/${config.id}/guilds/${guild}/commands`,
-					headers: {
-						"Content-Type": "application/json",
-						"Authorization": `Bearer ${token!}`
-					}
-				}, (res) => {
-					const r: Array<Buffer> = [];
-					status = res.statusCode;
-					statusText = res.statusMessage;
-					res
-						.on("error", (err) => reject(err))
-						.on("data", (c) => r.push(c as Buffer))
-						.on("end", () => resolve(JSON.parse(Buffer.concat(r).toString()) as RESTPutAPIApplicationGuildCommandsResult));
-				});
-				req.write(JSON.stringify(commands));
-				req.end();
+		for (const guild of config.guilds as Array<string>) {
+			const req = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/${guild}/commands`, {
+				method:  "PUT",
+				headers: {
+					"Content-Type":  "application/json",
+					"Authorization": `Bearer ${token}`
+				},
+				body: JSON.stringify(commands)
 			});
-			if (status !== 200) {
+			const body = await req.json() as RESTPutAPIApplicationGuildCommandsResult;
+			if (req.status !== 200) {
 				if (body.length > createdPer) createdPer = body.length;
 				createdTotal++;
 				console.error(`[${guild}] Failed To PUT Commands`);
-				console.error(`[${guild}]`, status, statusText, util.inspect(body, { depth: null }));
+				console.error(`[${guild}]`, req.status, req.statusText, util.inspect(body, { depth: null }));
 				return;
 			}
 		}
 	} else {
-		let status: number | undefined, statusText: string | undefined;
-		const body = await new Promise<RESTPutAPIApplicationGuildCommandsResult>((resolve, reject) => {
-			const req = https.request({
-				method: "PUT",
-				hostname: "discord.com",
-				pathname: `/api/v9/applications/${config.id}/commands`,
-				headers: {
-					"Content-Type": "application/json",
-					"Authorization": `Bearer ${token!}`
-				}
-			}, (res) => {
-				const r: Array<Buffer> = [];
-				status = res.statusCode;
-				statusText = res.statusMessage;
-				res
-					.on("error", (err) => reject(err))
-					.on("data", (c) => r.push(c as Buffer))
-					.on("end", () => resolve(JSON.parse(Buffer.concat(r).toString()) as RESTPutAPIApplicationGuildCommandsResult));
-			});
-			req.write(JSON.stringify(commands));
-			req.end();
+		const req = await fetch(`https://discord.com/api/v9/applications/${config.id}/commands`, {
+			method:  "PUT",
+			headers: {
+				"Content-Type":  "application/json",
+				"Authorization": `Bearer ${token}` },
+			body: JSON.stringify(commands)
 		});
+		const body = await req.json() as RESTPutAPIApplicationGuildCommandsResult;
 		createdPer = createdTotal = body.length;
-		if (status !== 200) {
+		if (req.status !== 200) {
 			console.error("Failed To PUT Commands");
-			console.error(status, statusText, util.inspect(body, { depth: null }));
+			console.error(req.status, req.statusText, util.inspect(body, { depth: null }));
 			return;
 		}
 	}

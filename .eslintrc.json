@@ -1,4 +1,6 @@
 {
   "extends": "@uwu-codes/eslint-config/ts.json",
-  "rules": {}
+  "rules": {
+    "@typescript-eslint/no-unsafe-return": "off"
+  }
 }

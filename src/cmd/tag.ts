@@ -7,7 +7,7 @@ import type { ApplicationCommandInteractionDataOptionString } from "discord-api-
 export default new Command("tag", "Get the content of a specific tag.")
 	.addStringOption("tag", "The tag to get the content of.", [
 		{
-			name: "Version",
+			name:  "Version",
 			value: "version"
 		}
 	], true)
