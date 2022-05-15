@@ -7,7 +7,8 @@
     "start": "node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
     "down": "sudo docker-compose down --rmi 'all' --remove-orphans",
     "up": "sudo docker-compose up --build -d",
-    "up:dev": "sudo docker-compose up --build"
+    "up:dev": "sudo docker-compose up --build",
+    "update": "git pull && npm run down && npm run up"
   },
   "repository": {
     "type": "git",
