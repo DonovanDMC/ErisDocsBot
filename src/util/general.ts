@@ -24,19 +24,19 @@ setInterval(refreshVersions.bind(null), 6e5);
 refreshVersions();
 export async function loadJSON(version?: string) {
 	if (!version) version = defaultVersion;
-	if (!versions.includes(version)) {
+	if (!allVersions.includes(version)) {
 		let v = version;
 		if (!v.startsWith("0.")) v = `0.${v}`;
 		if (versions.includes(v)) version = v;
 		else {
 			for (let i = 4; i >= 1; i--) {
-				if (versions.includes(`${v}.${i}`)) {
+				if (allVersions.includes(`${v}.${i}`)) {
 					v = `${v}.${i}`;
 					break;
 				}
 			}
 		}
-		if (!versions.includes(v)) return ["invalid", version] as const;
+		if (!allVersions.includes(v)) return ["invalid", version] as const;
 		version = v;
 	}
 	if (!versionOK(version)) return ["low", version] as const;
