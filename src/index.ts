@@ -72,7 +72,7 @@ const server = express()
 			const [json, ver] = await loadJSON(version);
 			switch (json) {
 				case "invalid": return res.status(404).json({ success: false, error: `The version "${version}" is invalid.` });
-				case "low": return res.status(404).json({ success: false, error: `The version "${ver}" is unsupported.` });
+				case "low": return res.status(400).json({ success: false, error: `The version "${ver}" is unsupported.` });
 				case "loading": return res.status(403).json({ success: false, error: `The version "${ver}" is still loading.` });
 				default: return res.status(200).json({ success: true, version: ver, data: json });
 			}
