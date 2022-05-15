@@ -13,10 +13,12 @@ export const minVersion = 140;
 export const minVersionString = "0.14.0";
 export let defaultVersion: string;
 export let versions: Array<string>;
+export let allVersions: Array<string>;
 // refresh versions every 10 minutes
 function refreshVersions() {
 	defaultVersion = execSync("npm show eris version").toString().slice(0, -1);
-	versions = (JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>).filter((v: string) => versionOK(v));
+	allVersions = (JSON.parse(execSync("npm show eris versions --json").toString()) as Array<string>);
+	versions = allVersions.filter(versionOK);
 }
 setInterval(refreshVersions.bind(null), 6e5);
 refreshVersions();

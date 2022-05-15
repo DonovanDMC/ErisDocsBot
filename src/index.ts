@@ -2,15 +2,24 @@
 /// <reference path="./@types/express.d.ts" />
 import type Command from "./util/Command";
 import registerCommands from "./util/registerCommands";
-import { decodeCustomID, reverseMapping } from "./util/general";
+import {
+	allVersions,
+	decodeCustomID,
+	defaultVersion,
+	loadJSON,
+	reverseMapping,
+	versions
+} from "./util/general";
+import type AST from "./@types/ast";
 import config from "../config.json";
 import type { Request } from "express";
-import express from "express";
+import express, { Router } from "express";
 import morgan from "morgan";
 import nacl from "tweetnacl";
 import type { APIChatInputApplicationCommandInteraction, APIInteraction, APIInteractionResponse } from "discord-api-types/v9";
 import { MessageFlags, InteractionResponseType, InteractionType } from "discord-api-types/v9";
 import type { ModuleImport } from "@uwu-codes/types";
+import FuzzySearch from "fuzzy-search";
 import { readdirSync } from "fs";
 
 
@@ -33,22 +42,101 @@ const server = express()
 			});
 		}
 	}))
-	.get("/r/:version/:class", async (req, res) => {
-		const v = Number(req.params.version), c = Number(req.params.version);
-		const version = isNaN(v) ? req.params.version : reverseMapping(v);
-		const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
+	.use("/r", Router()
+		.get("/:version/:class", async (req, res) => {
+			const v = Number(req.params.version), c = Number(req.params.version);
+			const version = isNaN(v) ? req.params.version : reverseMapping(v);
+			const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
 
-		return res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}`);
-	})
-	.get("/r/:version/:class/:type/:other", async (req, res) => {
-		const v = Number(req.params.version), c = Number(req.params.version), o = Number(req.params.other);
-		const version = isNaN(v) ? req.params.version : reverseMapping(v);
-		const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
-		const other = isNaN(o) ? req.params.other : reverseMapping(o);
-		const type = req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : req.params.type;
-		res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}#${type}-${other}`);
-	})
-	.get("*", async (req, res) => res.end("You shouldn't be here."))
+			return res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}`);
+		})
+		.get("/:version/:class/:type/:other", async (req, res) => {
+			const v = Number(req.params.version), c = Number(req.params.version), o = Number(req.params.other);
+			const version = isNaN(v) ? req.params.version : reverseMapping(v);
+			const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
+			const other = isNaN(o) ? req.params.other : reverseMapping(o);
+			const type = req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : req.params.type;
+			res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}#${type}-${other}`);
+		})
+	)
+	.use("/api", Router()
+		.get("/versions", async(req, res) => res.status(200).json({
+			all:       allVersions,
+			supported: versions
+		}))
+		.get("/versions/:version", async(req, res) => {
+			const version = req.params.version === "latest" ? defaultVersion : req.params.version;
+			const [json, ver] = await loadJSON(version);
+			switch (json) {
+				case "invalid": return res.status(404).json({ success: false, error: `The version "${version}" is invalid.` });
+				case "low": return res.status(404).json({ success: false, error: `The version "${ver}" is unsupported.` });
+				case "loading": return res.status(403).json({ success: false, error: `The version "${ver}" is still loading.` });
+				default: return res.status(200).json({ success: true, version: ver, data: json });
+			}
+		})
+		.get("/search/:version", async(req, res) => {
+			const version = req.params.version === "latest" ? defaultVersion : req.params.version;
+			const classSearch = req.query.class as string || "";
+			const eventSearch = req.query.event as string || null;
+			const methodSearch = req.query.method as string || null;
+			const propertySearch = req.query.property as string || null;
+			const hideIrrelevant = req.query.hide === undefined ? true : ["yes", "y", true].includes(String(req.query.hide));
+			const [json, ver] = await loadJSON(version);
+			switch (json) {
+				case "invalid": return res.status(404).json({ success: false, error: `The version "${version}" is invalid.` });
+				case "low": return res.status(404).json({ success: false, error: `The version "${ver}" is unsupported.` });
+				case "loading": return res.status(403).json({ success: false, error: `The version "${ver}" is still loading.` });
+			}
+
+			const classFuzz = new FuzzySearch(Object.keys(json).map(сlass => json[сlass]), ["name"], {
+				sort: true
+			});
+			console.log(classSearch, eventSearch, methodSearch, propertySearch);
+			const classes = classFuzz.search(classSearch);
+
+			let eventList = [] as Array<AST.EventDefinition & { class: string; }>, methodList = [] as Array<AST.MethodDefinition & { class: string; }>, propertyList = [] as Array<AST.PropertyDefinition & { class: string; }>;
+			classes.forEach(сlass => {
+				const { events, methods, properties } = сlass;
+				eventList.push(...events.map(e => ({ ...e, class: сlass.name })));
+				methodList.push(...methods.map(m => ({ ...m, class: сlass.name })));
+				propertyList.push(...properties.map(p => ({ ...p, class: сlass.name })));
+			});
+
+			classes.forEach(сlass => {
+				delete (сlass as Partial<typeof сlass>).events;
+				delete (сlass as Partial<typeof сlass>).methods;
+				delete (сlass as Partial<typeof сlass>).properties;
+			});
+			if (eventSearch) {
+				const eventFuzz = new FuzzySearch(eventList, ["name"], {
+					sort: true
+				});
+				eventList = eventFuzz.search(eventSearch);
+			}
+			if (methodSearch) {
+				const methodFuzz = new FuzzySearch(methodList, ["name"], {
+					sort: true
+				});
+				methodList = methodFuzz.search(methodSearch);
+			}
+			if (propertySearch) {
+				const propertyFuzz = new FuzzySearch(propertyList, ["name"], {
+					sort: true
+				});
+				propertyList = propertyFuzz.search(propertySearch);
+			}
+
+			return res.status(200).json({
+				success: true,
+				data:    {
+					classes,
+					events:     !eventSearch && (methodSearch || propertySearch) && hideIrrelevant ? [] : eventList,
+					methods:    !methodSearch && (eventSearch || propertySearch) && hideIrrelevant ? [] : methodList,
+					properties: !propertySearch && (methodSearch || eventSearch) && hideIrrelevant ? [] : propertyList
+				}
+			});
+		})
+	)
 	.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 		const isVerified = nacl.sign.detached.verify(
 			Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),
@@ -107,7 +195,8 @@ const server = express()
 				void cmd.runAutoComplete!.call(cmd, req.body, req as Parameters<Exclude<Command["runAutoComplete"], undefined>>[1], res);
 			}
 		}
-	});
+	})
+	.use("*", async (req, res) => res.end("You shouldn't be here."));
 
 
 server.listen(config.port, config.host, () => console.log("Listening on http://%s:%s", config.host, config.port));
