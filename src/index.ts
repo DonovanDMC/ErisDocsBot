@@ -11,18 +11,18 @@ import nacl from "tweetnacl";
 import type { APIChatInputApplicationCommandInteraction, APIInteraction, APIInteractionResponse } from "discord-api-types/v9";
 import { MessageFlags, InteractionResponseType, InteractionType } from "discord-api-types/v9";
 import type { ModuleImport } from "@uwu-codes/types";
-import { readdir } from "fs/promises";
+import { readdirSync } from "fs";
 
 
 const commandMap = new Map<string, Command>();
-const commands = (await Promise.all((await readdir("/app/src/cmd")).map(async(v) => {
-	if (!v.endsWith(import.meta.url.split(".").slice(-1)[0])) return;
+const commands = (readdirSync("/app/src/cmd").map(v => {
+	if (!v.endsWith(__filename.split(".").slice(-1)[0])) return;
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const cmd = await import(`/app/src/cmd/${v}`) as ModuleImport<Command> | Command;
+	const cmd = require(`/app/src/cmd/${v}`) as ModuleImport<Command> | Command;
 	const d = "default" in cmd ? cmd.default : cmd;
 	commandMap.set(d.name, d);
 	return d;
-}))).filter(Boolean) as Array<Command>;
+})).filter(Boolean) as Array<Command>;
 void registerCommands(commands);
 const server = express()
 	.use(morgan("dev"))
@@ -33,11 +33,21 @@ const server = express()
 			});
 		}
 	}))
-	.get("/r/:version/:class", async (req, res) =>
-		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}`)
-	).get("/r/:version/:class/:type/:other", async (req, res) =>
-		res.redirect(`https://abal.moe/Eris/docs/${reverseMapping(Number(req.params.version))}/${reverseMapping(Number(req.params.class))}#${req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : "unknown"}-${reverseMapping(Number(req.params.other))}`)
-	)
+	.get("/r/:version/:class", async (req, res) => {
+		const v = Number(req.params.version), c = Number(req.params.version);
+		const version = isNaN(v) ? req.params.version : reverseMapping(v);
+		const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
+
+		return res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}`);
+	})
+	.get("/r/:version/:class/:type/:other", async (req, res) => {
+		const v = Number(req.params.version), c = Number(req.params.version), o = Number(req.params.other);
+		const version = isNaN(v) ? req.params.version : reverseMapping(v);
+		const clazz = isNaN(c) ? req.params.class : reverseMapping(c);
+		const other = isNaN(o) ? req.params.other : reverseMapping(o);
+		const type = req.params.type === "e" ? "event" : req.params.type === "p" ? "property" : req.params.type === "m" ? "method" : req.params.type;
+		res.redirect(`https://abal.moe/Eris/docs/${version}/${clazz}#${type}-${other}`);
+	})
 	.get("*", async (req, res) => res.end("You shouldn't be here."))
 	.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 		const isVerified = nacl.sign.detached.verify(

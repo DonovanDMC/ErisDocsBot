@@ -1,5 +1,5 @@
 import fs from "fs";
-if (!import.meta.url.endsWith("ts")) throw new Error("this is built for ts-node only");
+if (!__filename.endsWith("ts")) throw new Error("this is built for ts-node only");
 
 const dir = "/app";
 const j = fs.readFileSync(`${process.argv[2] || `${dir}/node_modules`}/jsdoc/lib/jsdoc/util/dumper.js`).toString().split("\n");

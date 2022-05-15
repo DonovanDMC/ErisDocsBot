@@ -17,7 +17,7 @@ mkdir -p $DIR
 cd $DIR
 npm init -y > /dev/null
 npm i jsdoc ts-node > /dev/null
-node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm  $SCRIPT_DIR/fix-jsdoc.ts $DIR/node_modules
+ts-node $SCRIPT_DIR/fix-jsdoc.ts $DIR/node_modules
 echo "Running Version $VERSION"
 mkdir $VERSION
 cd $VERSION
@@ -31,7 +31,7 @@ DIRS=$(ls -p $MODULE_DIR | grep /)
 for file in $FILES; do
 	echo "[$VERSION] Processing File $file"
 	npx jsdoc -X $MODULE_DIR/$file > "${file}on"
-	node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm $SCRIPT_DIR/filter-useless-ast.ts $DIR/$VERSION/${file}on
+	ts-node $SCRIPT_DIR/filter-useless-ast.ts $DIR/$VERSION/${file}on
 done
 for dir in $DIRS; do
 	echo "[$VERSION] Processing Directory $dir"
@@ -40,7 +40,7 @@ for dir in $DIRS; do
 	for file in $FILES2; do
 		echo "[$VERSION] Processing File $dir$file"
 		npx jsdoc -X $MODULE_DIR/$dir$file > "$dir${file}on"
-	node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm $SCRIPT_DIR/filter-useless-ast.ts $DIR/$VERSION/$dir${file}on
+	ts-node $SCRIPT_DIR/filter-useless-ast.ts $DIR/$VERSION/$dir${file}on
 	done
 done
 cd $DIR

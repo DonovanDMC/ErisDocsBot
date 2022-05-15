@@ -3,12 +3,11 @@
   "compilerOptions": {
     "outDir": "./build",
     "baseUrl": "./src",
-    "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "inlineSourceMap": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "module": "esnext"
+    "resolveJsonModule": true
   },
   "include": ["**/*"],
   "exclude": ["node_modules", "build"]
