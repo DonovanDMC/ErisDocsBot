@@ -61,8 +61,11 @@ const server = express()
 	)
 	.use("/api", Router()
 		.get("/versions", async(req, res) => res.status(200).json({
-			all:       allVersions,
-			supported: versions
+			success: true,
+			data:    {
+				all:       allVersions,
+				supported: versions
+			}
 		}))
 		.get("/versions/:version", async(req, res) => {
 			const version = req.params.version === "latest" ? defaultVersion : req.params.version;
@@ -84,7 +87,7 @@ const server = express()
 			const [json, ver] = await loadJSON(version);
 			switch (json) {
 				case "invalid": return res.status(404).json({ success: false, error: `The version "${version}" is invalid.` });
-				case "low": return res.status(404).json({ success: false, error: `The version "${ver}" is unsupported.` });
+				case "low": return res.status(400).json({ success: false, error: `The version "${ver}" is unsupported.` });
 				case "loading": return res.status(403).json({ success: false, error: `The version "${ver}" is still loading.` });
 			}
 
