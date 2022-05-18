@@ -11,7 +11,7 @@ services:
     hostname: eris-docs-bot.containers.local
     networks:
       default:
-        ipv4_address: 172.19.4.2
+        ipv4_address: 172.19.1.6
 
 networks:
   default:
@@ -20,8 +20,8 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.19.4.0/24
-          gateway: 172.19.4.1
+        - subnet: 172.19.1.4/30
+          gateway: 172.19.1.5
 
 volumes:
   modules: null
