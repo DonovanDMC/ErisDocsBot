@@ -22,6 +22,7 @@
   "homepage": "https://github.com/DonovanDMC/ErisDocsBot#readme",
   "dependencies": {
     "@discord-additions/components": "^1.0.1",
+    "@discord-additions/embed-builder": "^1.0.0",
     "@uwu-codes/utils": "^1.0.65",
     "chunk": "^0.0.3",
     "express": "^4.18.1",

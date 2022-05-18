@@ -1,7 +1,6 @@
 import Command from "../util/Command";
 import type { DecodedCustomID } from "../util/general";
 import { log, loadJSON, encodeCustomID, getDocsURL } from "../util/general";
-import EmbedBuilder from "../util/EmbedBuilder";
 import emojis from "../../emojis.json";
 import type { APIApplicationCommandAutocompleteInteraction } from "discord-api-types/payloads/v9/_interactions/autocomplete";
 import type { Request, Response } from "express";
@@ -22,6 +21,7 @@ import type {
 	APIActionRowComponent
 } from "discord-api-types/v9";
 import ComponentHelper from "@discord-additions/components";
+import EmbedBuilder from "@discord-additions/embed-builder";
 
 export function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {
 	if (values.length < max) return values;
