@@ -42,6 +42,7 @@ const server = express()
 			});
 		}
 	}))
+	.get("/online", async(req, res) => res.status(200).json({ success: true, uptime: process.uptime() }))
 	.use("/r", Router()
 		.get("/:version/:class", async (req, res) => {
 			const v = Number(req.params.version), c = Number(req.params.version);
@@ -140,65 +141,67 @@ const server = express()
 		})
 		.use(async(req, res) => res.status(404).json({ success: false, error: "Not Found" }))
 	)
-	.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
-		const isVerified = nacl.sign.detached.verify(
-			Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),
-			Buffer.from(req.get("X-Signature-Ed25519")!, "hex"),
-			Buffer.from(config.publicKey, "hex")
-		);
-		if (!isVerified) return res.status(401).end();
+	.use("/bot", Router()
+		.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
+			const isVerified = nacl.sign.detached.verify(
+				Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),
+				Buffer.from(req.get("X-Signature-Ed25519")!, "hex"),
+				Buffer.from(config.publicKey, "hex")
+			);
+			if (!isVerified) return res.status(401).end();
 
-		switch (req.body.type) {
-			case InteractionType.Ping: {
-				return res.status(200).json({
-					type: InteractionResponseType.Pong
-				});
-			}
+			switch (req.body.type) {
+				case InteractionType.Ping: {
+					return res.status(200).json({
+						type: InteractionResponseType.Pong
+					});
+				}
 
-			case InteractionType.ApplicationCommand: {
-				const cmd = commandMap.get(req.body.data.name);
-				if (!cmd) return res.status(200).json({
-					type: InteractionResponseType.ChannelMessageWithSource,
-					data: {
-						content: "Unknown Command.",
-						flags:   MessageFlags.Ephemeral
-					}
-				});
-				void cmd.runCommand.call(cmd, req.body as APIChatInputApplicationCommandInteraction, req as Parameters<Command["runCommand"]>[1], res);
-				break;
-			}
+				case InteractionType.ApplicationCommand: {
+					const cmd = commandMap.get(req.body.data.name);
+					if (!cmd) return res.status(200).json({
+						type: InteractionResponseType.ChannelMessageWithSource,
+						data: {
+							content: "Unknown Command.",
+							flags:   MessageFlags.Ephemeral
+						}
+					});
+					void cmd.runCommand.call(cmd, req.body as APIChatInputApplicationCommandInteraction, req as Parameters<Command["runCommand"]>[1], res);
+					break;
+				}
 
-			case InteractionType.MessageComponent: {
-				const d = decodeCustomID(req.body.data.custom_id);
-				const cmd = commandMap.get(d.cmd);
-				if (!cmd || !("runComponent" in cmd)) return res.status(200).json({
-					type: InteractionResponseType.ChannelMessageWithSource,
-					data: {
-						content: "Unknown Command.",
-						flags:   MessageFlags.Ephemeral
-					}
-				});
-				void cmd.runComponent!.call(cmd, req.body, d, req as Parameters<Exclude<Command["runComponent"], undefined>>[2], res);
-				break;
-			}
+				case InteractionType.MessageComponent: {
+					const d = decodeCustomID(req.body.data.custom_id);
+					const cmd = commandMap.get(d.cmd);
+					if (!cmd || !("runComponent" in cmd)) return res.status(200).json({
+						type: InteractionResponseType.ChannelMessageWithSource,
+						data: {
+							content: "Unknown Command.",
+							flags:   MessageFlags.Ephemeral
+						}
+					});
+					void cmd.runComponent!.call(cmd, req.body, d, req as Parameters<Exclude<Command["runComponent"], undefined>>[2], res);
+					break;
+				}
 
-			case InteractionType.ApplicationCommandAutocomplete: {
-				const cmd = commandMap.get(req.body.data!.name);
-				if (!cmd || !("runAutoComplete" in cmd)) return res.status(200).json({
-					type: InteractionResponseType.ApplicationCommandAutocompleteResult,
-					data: {
-						choices: [
-							{
-								name:  "Unknown Command",
-								value: "unknown"
-							}
-						]
-					}
-				});
-				void cmd.runAutoComplete!.call(cmd, req.body, req as Parameters<Exclude<Command["runAutoComplete"], undefined>>[1], res);
+				case InteractionType.ApplicationCommandAutocomplete: {
+					const cmd = commandMap.get(req.body.data!.name);
+					if (!cmd || !("runAutoComplete" in cmd)) return res.status(200).json({
+						type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+						data: {
+							choices: [
+								{
+									name:  "Unknown Command",
+									value: "unknown"
+								}
+							]
+						}
+					});
+					void cmd.runAutoComplete!.call(cmd, req.body, req as Parameters<Exclude<Command["runAutoComplete"], undefined>>[1], res);
+				}
 			}
-		}
-	})
+		})
+	)
 	.use(async (req, res) => res.status(404).end());
 
 
