@@ -61,6 +61,7 @@ const server = express()
 		})
 	)
 	.use("/api", Router()
+		.get("/online", async(req, res) => res.status(200).json({ success: true, uptime: process.uptime() }))
 		.get("/versions", async(req, res) => res.status(200).json({
 			success: true,
 			data:    {
@@ -142,6 +143,7 @@ const server = express()
 		.use(async(req, res) => res.status(404).json({ success: false, error: "Not Found" }))
 	)
 	.use("/bot", Router()
+		.get("/online", async(req, res) => res.status(200).json({ success: true, uptime: process.uptime() }))
 		.post("/", async (req: Request<never, APIInteractionResponse, APIInteraction>, res) => {
 			const isVerified = nacl.sign.detached.verify(
 				Buffer.from(`${req.get("X-Signature-Timestamp")!}${req.rawBody.toString()}`),
