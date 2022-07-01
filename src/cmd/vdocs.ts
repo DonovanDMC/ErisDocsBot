@@ -13,26 +13,26 @@ import { loadJSON, log, versions } from "../util/general";
 
 export default new Command("vdocs", "(version specific) Get information about Eris' classes and functions.")
 	// class
-	.addSubCommandOption("class", "Get info about a specific class.")
 	.addAutocompleteOption("version", "The version to get information from.", true)
+	.addSubCommandOption("class", "Get info about a specific class.")
 	.addAutocompleteOption("class", "The class to get information about.", true)
 	.backToParent()
 	// event
 	.addSubCommandOption("event", "Get info about an event.")
-	.addAutocompleteOption("class", "The class to get event information from.", true)
 	.addAutocompleteOption("version", "The version to get information from.", true)
+	.addAutocompleteOption("class", "The class to get event information from.", true)
 	.addAutocompleteOption("event", "The event to get information about.", true)
 	.backToParent()
 	// property
 	.addSubCommandOption("property", "Get info about a class property.")
-	.addAutocompleteOption("class", "The class to get property information from.", true)
 	.addAutocompleteOption("version", "The version to get information from.", true)
+	.addAutocompleteOption("class", "The class to get property information from.", true)
 	.addAutocompleteOption("property", "The property to get information about.", true)
 	.backToParent()
 	// method
 	.addSubCommandOption("method", "Get info about a class method.")
-	.addAutocompleteOption("class", "The class to get method information from.", true)
 	.addAutocompleteOption("version", "The version to get information from.", true)
+	.addAutocompleteOption("class", "The class to get method information from.", true)
 	.addAutocompleteOption("method", "The method to get information about.", true)
 	.backToParent()
 	.setExecutor(async function (interaction, req, res) {
