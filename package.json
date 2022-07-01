@@ -1,7 +1,7 @@
 {
   "name": "erisdocsbot",
-  "version": "1.0.1",
-  "description": "HTTP base Discord bot for displaying Eris documentation",
+  "version": "1.0.2",
+  "description": "HTTP base Discord bot for displaying Eris documentation.",
   "main": "index.js",
   "scripts": {
     "start": "node --no-warnings --no-deprecation --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts",
