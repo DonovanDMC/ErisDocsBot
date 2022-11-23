@@ -6,7 +6,7 @@ services:
     container_name: eris-docs-bot
     build: .
     volumes:
-      - data:/data:z
+      - ./data:/data:z
     restart: always
     hostname: eris-docs-bot.containers.local
     networks:
@@ -25,4 +25,3 @@ networks:
 
 volumes:
   modules: null
-  data: null
