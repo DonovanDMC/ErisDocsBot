@@ -29,7 +29,7 @@
     "fuzzy-search": "^3.2.1",
     "morgan": "^1.10.0",
     "tweetnacl": "^1.0.3",
-    "undici": "^5.2.0"
+    "undici": "^5.13.0"
   },
   "devDependencies": {
     "@types/chunk": "^0.0.0",
@@ -42,7 +42,7 @@
     "@uwu-codes/tsconfig": "^1.0.1",
     "@uwu-codes/types": "^1.0.6",
     "discord-api-types": "^0.25.2",
-    "ts-node": "^10.7.0",
+    "ts-node": "^10.9.1",
     "typescript": "^4.6.4"
   },
   "keywords": []
