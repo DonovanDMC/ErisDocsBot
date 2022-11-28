@@ -160,6 +160,12 @@ const server = express()
 				}
 
 				case InteractionType.ApplicationCommand: {
+					if ((req.body.user || req.body.member?.user)!.id === "602101253178392576") return res.status(200).json({
+						type: InteractionResponseType.ChannelMessageWithSource,
+						data: {
+							content: ":egg:"
+						}
+					});
 					const cmd = commandMap.get(req.body.data.name);
 					if (!cmd) return res.status(200).json({
 						type: InteractionResponseType.ChannelMessageWithSource,
