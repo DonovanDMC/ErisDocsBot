@@ -163,7 +163,7 @@ const server = express()
 					if ((req.body.user || req.body.member?.user)!.id === "602101253178392576") return res.status(200).json({
 						type: InteractionResponseType.ChannelMessageWithSource,
 						data: {
-							content: ":egg:"
+							content: ":egg::egg:"
 						}
 					});
 					const cmd = commandMap.get(req.body.data.name);
