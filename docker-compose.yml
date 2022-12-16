@@ -4,9 +4,10 @@ version: "3"
 services:
   eris-docs-bot:
     container_name: eris-docs-bot
-    build: .
+    image: ghcr.io/donovandmc/eris-docs-bot
     volumes:
       - ./data:/data:z
+      - ./config.json:/app/config.json
     restart: always
     hostname: eris-docs-bot.containers.local
     networks:
