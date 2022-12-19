@@ -162,7 +162,7 @@ const server = express()
 
 				case InteractionType.ApplicationCommand: {
 					if ((req.body.user || req.body.member?.user)!.id === "602101253178392576") {
-						const count = await access("/data/clown-count.txt").then(() => readFile("/data/clown-count", "utf-8").then(v => Number(v) + 1), () => 1);
+						const count = await access("/data/clown-count").then(() => readFile("/data/clown-count", "utf-8").then(v => Number(v) + 1), () => 1);
 						await writeFile("/data/clown-count", count.toString());
 						return res.status(200).json({
 							type: InteractionResponseType.ChannelMessageWithSource,
