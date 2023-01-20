@@ -9,7 +9,17 @@ services:
       - ./data:/data:z
       - ./config.json:/app/config.json
     restart: always
+    healthcheck:
+      interval: 10s
+      timeout: 2s
+      test: lsof -i :80 || exit 1
     hostname: eris-docs-bot.containers.local
+    deploy:
+        resources:
+          limits:
+            memory: 256M
+          reservations:
+            memory: 128M
     networks:
       default:
         ipv4_address: 172.19.3.10
