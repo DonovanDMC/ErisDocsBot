@@ -1,7 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./@types/express.d.ts" />
 import type Command from "./util/Command";
-import registerCommands from "./util/registerCommands";
 import {
 	allVersions,
 	decodeCustomID,
@@ -33,7 +32,6 @@ const commands = (readdirSync("/app/src/cmd").map(v => {
 	commandMap.set(d.name, d);
 	return d;
 })).filter(Boolean) as Array<Command>;
-void registerCommands(commands);
 const server = express()
 	.use(morgan("dev"))
 	.use(express.json({
