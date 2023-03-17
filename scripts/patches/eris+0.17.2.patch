@@ -1,0 +1,39 @@
+diff --git a/node_modules/eris/lib/Client.js b/node_modules/eris/lib/Client.js
+index 9504da9..5b26914 100644
+--- a/node_modules/eris/lib/Client.js
++++ b/node_modules/eris/lib/Client.js
+@@ -2597,7 +2597,7 @@ class Client extends EventEmitter {
+     * @arg {String} [options.before] Get users before this user ID
+     * @arg {Number} [options.limit=100] The number of users to get (max 100). Pagination will only work if one of `options.after` or `options.after` is also provided
+     * @arg {Boolean} [options.withMember] Include guild member data
+-    * @returns {Promise<Array<{guildScheduledEventID: String, member?: Member, user: User}>>}
++    * @returns {Promise<Array<Object>>}
+     */
+     getGuildScheduledEventUsers(guildID, eventID, options = {}) {
+         const guild = this.guilds.get(guildID);
+diff --git a/node_modules/eris/lib/structures/Guild.js b/node_modules/eris/lib/structures/Guild.js
+index 8efdb1d..9879a5d 100644
+--- a/node_modules/eris/lib/structures/Guild.js
++++ b/node_modules/eris/lib/structures/Guild.js
+@@ -1126,7 +1126,7 @@ class Guild extends Base {
+     * @arg {String} [options.before] Get users before this user ID
+     * @arg {Number} [options.limit=100] The number of users to get (max 100). Pagination will only work if one of `options.after` or `options.after` is also provided
+     * @arg {Boolean} [options.withMember] Include guild member data
+-    * @returns {Promise<Array<{guildScheduledEventID: String, member?: Member, user: User}>}
++    * @returns {Promise<Array<Object>>}
+     */
+     getScheduledEventUsers(eventID, options) {
+         return this._client.getGuildScheduledEventUsers.call(this._client, this.id, eventID, options);
+diff --git a/node_modules/eris/lib/structures/GuildScheduledEvent.js b/node_modules/eris/lib/structures/GuildScheduledEvent.js
+index 055b25d..f09551a 100644
+--- a/node_modules/eris/lib/structures/GuildScheduledEvent.js
++++ b/node_modules/eris/lib/structures/GuildScheduledEvent.js
+@@ -127,7 +127,7 @@ class GuildScheduledEvent extends Base {
+     * @arg {String} [options.before] Get users before this user ID
+     * @arg {Number} [options.limit=100] The number of users to get (max 100). Pagination will only work if one of `options.after` or `options.after` is also provided
+     * @arg {Boolean} [options.withMember] Include guild member data
+-    * @returns {Promise<Array<{guildScheduledEventID: String, member?: Member, user: User}>>}
++    * @returns {Promise<Array<Object>>}
+     */
+     getUsers(options) {
+         return this._client.getGuildScheduledEventUsers.call(this._client, this.guild.id, this.id, options);

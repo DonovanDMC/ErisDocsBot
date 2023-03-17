@@ -29,9 +29,11 @@
     "@discord-additions/embed-builder": "^1.0.0",
     "@uwu-codes/utils": "^1.0.65",
     "chunk": "^0.0.3",
+    "eris": "^0.16.0",
     "express": "^4.18.1",
     "fuzzy-search": "^3.2.1",
     "morgan": "^1.10.0",
+    "patch-package": "^6.5.1",
     "tweetnacl": "^1.0.3",
     "undici": "^5.13.0"
   },

@@ -17,15 +17,16 @@ mkdir -p $DIR
 cd $DIR
 npm init -y > /dev/null
 npm i jsdoc ts-node > /dev/null
-ts-node $SCRIPT_DIR/fix-jsdoc.ts $DIR/node_modules
+patch -p1 -i $SCRIPT_DIR/patches/jsdoc+*.patch
 echo "Running Version $VERSION"
 mkdir $VERSION
-cd $VERSION
-if [ "$VERSION" = "0.16.0" ]; then
-	npm i DonovanDMC/eris#jsdoc-fix > /dev/null
-else
-	npm i eris@$VERSION > /dev/null
+npm i eris@$VERSION > /dev/null
+PATCH=$SCRIPT_DIR/patches/eris+$VERSION.patch
+if [ -f "$PATCH" ]; then
+    echo "Patching $VERSION with eris+$VERSION.patch"
+    patch -p1 -i $PATCH -t
 fi
+cd $VERSION
 FILES=$(ls -p $MODULE_DIR | grep -v /)
 DIRS=$(ls -p $MODULE_DIR | grep /)
 for file in $FILES; do
