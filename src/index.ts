@@ -21,6 +21,7 @@ import type { ModuleImport } from "@uwu-codes/types";
 import FuzzySearch from "fuzzy-search";
 import { readdirSync } from "fs";
 import { access, readFile, writeFile } from "fs/promises";
+import { createServer } from "http";
 
 
 const commandMap = new Map<string, Command>();
@@ -216,5 +217,12 @@ const server = express()
 	.use(async (req, res) => res.status(404).end());
 
 
-server.listen(config.port, config.host, () => console.log("Listening on http://%s:%s", config.host, config.port));
+const srv = server.listen(config.port, config.host, () => console.log("Listening on http://%s:%s", config.host, config.port));
 console.log("Ready.");
+
+createServer((req, res) => {
+    res.writeHead(srv.listening ? 204: 503, {
+            "Content-Type":   "text/plain",
+            "Content-Length": 0
+        }).end();
+    }).listen(3621, "127.0.0.1");
