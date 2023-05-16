@@ -160,7 +160,8 @@ const server = express()
 				}
 
 				case InteractionType.ApplicationCommand: {
-					if ((req.body.user || req.body.member?.user)!.id === "602101253178392576") {
+					const clownIDs = ["602101253178392576", "1085911048097374219"];
+					if (clownIDs.includes((req.body.user || req.body.member?.user)!.id)) {
 						const count = await access("/data/clown-count").then(() => readFile("/data/clown-count", "utf-8").then(v => Number(v) + 1), () => 1);
 						await writeFile("/data/clown-count", count.toString());
 						return res.status(200).json({
@@ -221,8 +222,8 @@ const srv = server.listen(config.port, config.host, () => console.log("Listening
 console.log("Ready.");
 
 createServer((req, res) => {
-    res.writeHead(srv.listening ? 204: 503, {
-            "Content-Type":   "text/plain",
-            "Content-Length": 0
-        }).end();
-    }).listen(3621, "127.0.0.1");
+	res.writeHead(srv.listening ? 204 : 503, {
+		"Content-Type":   "text/plain",
+		"Content-Length": 0
+	}).end();
+}).listen(3621, "127.0.0.1");
