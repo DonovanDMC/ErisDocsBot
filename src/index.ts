@@ -25,7 +25,7 @@ import { createServer } from "http";
 
 
 const commandMap = new Map<string, Command>();
-const commands = (readdirSync("/app/src/cmd").map(v => {
+(readdirSync("/app/src/cmd").map(v => {
 	if (!v.endsWith(__filename.split(".").slice(-1)[0])) return;
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const cmd = require(`/app/src/cmd/${v}`) as ModuleImport<Command> | Command;

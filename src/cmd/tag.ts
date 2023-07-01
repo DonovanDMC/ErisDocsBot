@@ -51,7 +51,7 @@ export default new Command("tag", "Get the content of a specific tag.")
 							.setColor(0x4E98D8)
 							.toJSON()
 					],
-					flags: interaction.member && interaction.guild_id === "831967755447828491" && interaction.channel_id !== "831974405701500931" && !["831967755447828493", "838134914539847720"].some(r => interaction.member!.roles.includes(r)) ? MessageFlags.Ephemeral : 0
+					flags: interaction.member && interaction.guild_id === "831967755447828491" && interaction.channel_id !== "831974405701500931" && !["831967755447828493", "838134914539847720"].some(r => interaction.member!.roles.includes(r)) ? MessageFlags.Ephemeral : undefined
 				}
 			});
 		}
