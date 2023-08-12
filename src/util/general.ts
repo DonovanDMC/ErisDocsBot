@@ -1,10 +1,22 @@
-import config from "../../config.json";
 import type AST from "../@types/ast";
 import type { APIInteraction } from "discord-api-types/v9";
 import { Time } from "@uwu-codes/utils";
+import { parse } from "jsonc-parser";
 import { execSync, spawn } from "child_process";
 import * as fs from "fs";
 
+interface IConfig {
+	dataDir: string;
+	host: string;
+	port: number;
+	publicKey: string;
+	baseURL: string;
+	id: string;
+	secret: string;
+	useGuildCommands: boolean;
+	guilds: Array<string>;
+}
+export const config = parse(fs.readFileSync(`${__dirname}/../config.jsonc`, "utf8")) as IConfig;
 
 const scriptDir = "/app/scripts";
 execSync(`mkdir -p ${config.dataDir}/versions`);

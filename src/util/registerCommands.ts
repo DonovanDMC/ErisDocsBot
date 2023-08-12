@@ -1,5 +1,5 @@
 import type Command from "./Command";
-import config from "../../config.json";
+import { config } from "./general";
 import type { RESTPostOAuth2ClientCredentialsResult, RESTPutAPIApplicationGuildCommandsResult } from "discord-api-types/v9";
 import { fetch } from "undici";
 import * as fs from "fs";
@@ -71,7 +71,7 @@ export default async function registerCommands(commands: Array<Command>, force =
 
 	let createdPer = 0, createdTotal = 0;
 	if (config.useGuildCommands) {
-		for (const guild of config.guilds as Array<string>) {
+		for (const guild of config.guilds) {
 			const req = await fetch(`https://discord.com/api/v9/applications/${config.id}/guilds/${guild}/commands`, {
 				method:  "PUT",
 				headers: {

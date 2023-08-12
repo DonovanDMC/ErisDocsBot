@@ -17,15 +17,15 @@ dependencies:
   chunk:
     specifier: ^0.0.3
     version: 0.0.3
-  eris:
-    specifier: ^0.16.0
-    version: 0.16.0
   express:
     specifier: ^4.18.1
     version: 4.18.1
   fuzzy-search:
     specifier: ^3.2.1
     version: 3.2.1
+  jsonc-parser:
+    specifier: ^3.2.0
+    version: 3.2.0
   morgan:
     specifier: ^1.10.0
     version: 1.10.0
@@ -46,9 +46,6 @@ devDependencies:
   '@types/express':
     specifier: ^4.17.13
     version: 4.17.13
-  '@types/fs-extra':
-    specifier: ^9.0.13
-    version: 9.0.13
   '@types/fuzzy-search':
     specifier: ^2.1.2
     version: 2.1.2
@@ -215,12 +212,6 @@ packages:
       '@types/express-serve-static-core': 4.17.25
       '@types/qs': 6.9.7
       '@types/serve-static': 1.13.10
-    dev: true
-
-  /@types/fs-extra@9.0.13:
-    resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
-    dependencies:
-      '@types/node': 17.0.33
     dev: true
 
   /@types/fuzzy-search@2.1.2:
@@ -801,20 +792,6 @@ packages:
   /encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
     engines: {node: '>= 0.8'}
-    dev: false
-
-  /eris@0.16.0:
-    resolution: {integrity: sha512-q46t8/6D88SLo20w29xycDvd67r9EpBOel/DKqRTfNms0XARPJpngITtFL9J6qRaRIkBr8PDeqpbO5gwNeSThw==}
-    engines: {node: '>=10.4.0'}
-    deprecated: no longer supported
-    dependencies:
-      ws: 8.13.0
-    optionalDependencies:
-      opusscript: 0.0.8
-      tweetnacl: 1.0.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: false
 
   /es-abstract@1.20.0:
@@ -1571,8 +1548,8 @@ packages:
       minimist: 1.2.6
     dev: false
 
-  /jsonc-parser@3.0.0:
-    resolution: {integrity: sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==}
+  /jsonc-parser@3.2.0:
+    resolution: {integrity: sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==}
 
   /jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
@@ -1781,12 +1758,6 @@ packages:
       prelude-ls: 1.2.1
       type-check: 0.4.0
       word-wrap: 1.2.3
-
-  /opusscript@0.0.8:
-    resolution: {integrity: sha512-VSTi1aWFuCkRCVq+tx/BQ5q9fMnQ9pVZ3JU4UHKqTkf0ED3fKEPdr+gKAAl3IA2hj9rrP6iyq3hlcJq3HELtNQ==}
-    requiresBuild: true
-    dev: false
-    optional: true
 
   /os-tmpdir@1.0.2:
     resolution: {integrity: sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g==}
@@ -2312,7 +2283,7 @@ packages:
   /vscode-json-languageservice@4.1.10:
     resolution: {integrity: sha512-IHliMEEYSY0tJjJt0ECb8ESx/nRXpoy9kN42WVQXgaqGyizFAf3jibSiezDQTrrY7f3kywXggCU+kkJEM+OLZQ==}
     dependencies:
-      jsonc-parser: 3.0.0
+      jsonc-parser: 3.2.0
       vscode-languageserver-textdocument: 1.0.2
       vscode-languageserver-types: 3.16.0
       vscode-nls: 5.0.0
@@ -2368,19 +2339,6 @@ packages:
 
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
-
-  /ws@8.13.0:
-    resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-    dev: false
 
   /y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}

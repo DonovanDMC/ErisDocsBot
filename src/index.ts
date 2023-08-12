@@ -3,6 +3,7 @@
 import type Command from "./util/Command";
 import {
 	allVersions,
+	config,
 	decodeCustomID,
 	defaultVersion,
 	loadJSON,
@@ -10,7 +11,6 @@ import {
 	versions
 } from "./util/general";
 import type AST from "./@types/ast";
-import config from "../config.json";
 import type { Request } from "express";
 import express, { Router } from "express";
 import morgan from "morgan";
@@ -22,7 +22,6 @@ import FuzzySearch from "fuzzy-search";
 import { readdirSync } from "fs";
 import { access, readFile, writeFile } from "fs/promises";
 import { createServer } from "http";
-
 
 const commandMap = new Map<string, Command>();
 (readdirSync("/app/src/cmd").map(v => {
