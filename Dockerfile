@@ -7,4 +7,4 @@ RUN npm install --no-save pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN npx pnpm install  --frozen-lockfile
 COPY . .
-CMD npx pnpm start
+CMD ["node", "--no-warnings", "--no-deprecation", "--experimental-specifier-resolution=node", "--loader", "ts-node/esm", "src/index.ts"]
