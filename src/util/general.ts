@@ -16,7 +16,7 @@ interface IConfig {
 	useGuildCommands: boolean;
 	guilds: Array<string>;
 }
-export const config = parse(fs.readFileSync(`${__dirname}/../config.jsonc`, "utf8")) as IConfig;
+export const config = parse(fs.readFileSync(`${__dirname}/../../config.jsonc`, "utf8")) as IConfig;
 
 const scriptDir = "/app/scripts";
 execSync(`mkdir -p ${config.dataDir}/versions`);
