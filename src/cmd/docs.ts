@@ -20,7 +20,7 @@ import type {
 	ApplicationCommandInteractionDataOptionSubCommand,
 	APIActionRowComponent
 } from "discord-api-types/v9";
-import ComponentHelper from "@discord-additions/components";
+import { ComponentHelper } from "@discord-additions/components";
 import EmbedBuilder from "@discord-additions/embed-builder";
 
 export function truncateChoices(values: Array<APIApplicationCommandOptionChoice>, max: number) {

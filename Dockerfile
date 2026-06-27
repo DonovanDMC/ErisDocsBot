@@ -1,10 +1,8 @@
-FROM node:16-alpine
+FROM node:22-alpine
 
 WORKDIR /app
-RUN apk add lsof
-RUN echo -e "update-notifier=false\nloglevel=error\nnode-linker=hoisted" > ~/.npmrc
-RUN npm install --no-save pnpm
-COPY package.json pnpm-lock.yaml ./
-RUN npx pnpm install  --frozen-lockfile
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-CMD ["node", "--no-warnings", "--no-deprecation", "--experimental-specifier-resolution=node", "--loader", "ts-node/esm", "src/index.ts"]
+CMD ["node", "--no-warnings", "--import", "tsx/esm", "src/index.ts"]

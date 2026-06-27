@@ -1,14 +1,21 @@
 {
-  "extends": "@uwu-codes/tsconfig",
   "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "outDir": "./build",
     "baseUrl": "./src",
     "skipLibCheck": true,
     "inlineSourceMap": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "resolveJsonModule": true
+    "strict": true,
+    "lib": ["ESNext"],
+    "allowJs": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
-  "include": ["**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "build"]
 }

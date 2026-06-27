@@ -22,16 +22,19 @@ import FuzzySearch from "fuzzy-search";
 import { readdirSync } from "fs";
 import { access, readFile, writeFile } from "fs/promises";
 import { createServer } from "http";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const cmdDir = join(__dirname, "cmd");
 
 const commandMap = new Map<string, Command>();
-(readdirSync("/app/src/cmd").map(v => {
-	if (!v.endsWith(__filename.split(".").slice(-1)[0])) return;
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const cmd = require(`/app/src/cmd/${v}`) as ModuleImport<Command> | Command;
-	const d = "default" in cmd ? cmd.default : cmd;
+await Promise.all(readdirSync(cmdDir).filter(v => v.endsWith(".ts")).map(async v => {
+	const mod = await import(join(cmdDir, v)) as ModuleImport<Command> | Command;
+	const d = "default" in mod ? mod.default : mod;
 	commandMap.set(d.name, d);
 	return d;
-})).filter(Boolean) as Array<Command>;
+}));
 const server = express()
 	.use(morgan("dev"))
 	.use(express.json({
